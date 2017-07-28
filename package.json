@@ -17,7 +17,7 @@
     "url": "https://github.com/iamchairs/ionic-conference-calendar-header/issues"
   },
   "homepage": "https://github.com/iamchairs/ionic-conference-calendar-header#readme",
-  "keywords": ["d3","d3js","seating","chart","tickets"],
+  "keywords": ["d3-seating-chart", "d3","d3js","seating","chart","tickets"],
   "author": "Micah Williamson",
   "contributors": [],
   "license": "MIT",

@@ -150,35 +150,3 @@ This package doesn't do any advanced event handling. The `D3SeatingChart` class 
     }
   });
 ```
-
-
-public getBoard() {
-    let svgSelection = d3.select(this.element);
-    return svgSelection.select('[type="Board"]');
-  }
-
-  public getSeatingAreas() {
-    let svgSelection = d3.select(this.element);
-    return svgSelection.selectAll('[type="SeatingArea"]');
-  }
-
-  public getSeatingAreaExposes() {
-    let svgSelection = d3.select(this.element);
-    return svgSelection.selectAll('[type="SeatingAreaExpose"]');
-  }
-
-  public getSeats() {
-    let svgSelection = d3.select(this.element);
-    return svgSelection.selectAll('[type="SeatingAreaExpose"] rect');
-  }
-
-
-
-## API
-
-|          | Name   | Data Type            | Description                                                                                           | Example                                              |
-|----------|--------|----------------------|-------------------------------------------------------------------------------------------------------|------------------------------------------------------|
-| [Input]  | date   | string \| Date        | The date to select in the header. The date must already exist in the given [dates].                   | "2018-01-01" | new Date()                            |
-| [Input]  | dates  | Array\<string \| Date\> | All of the possible dates.                                                                            | ["2018-01-01", "2018-01-02", new Date(), new Date()] |
-| [Input]   | view  | string | Optional view type setting. Possible values are "days" and "months". Defaults to **days** | "days" | "months" |
-| (Output) | change | string                |  | "2018-01-01"                                                     |
