@@ -57,7 +57,7 @@ export class D3SeatingChart {
 
   public getSeats() {
     let svgSelection = d3.select(this.element);
-    return svgSelection.selectAll('[type="SeatingAreaExpose"] rect');
+    return svgSelection.selectAll('[type="SeatingAreaExpose"] > *:not([type="Static"])');
   }
 
   public goToBoard() {
@@ -80,18 +80,19 @@ export class D3SeatingChart {
     let hideSelection: any;
     let showSelection: any;
 
-    if(selection.attr('type') === 'Board') {
-      if(this.focusedSelection && this.focusedSelection.attr('type') === 'SeatingAreaExpose') {
-        hideSelection = this.focusedSelection;
-      } else {
-        hideSelection = svgSelection.selectAll('[type="SeatingAreaExpose"]');
-      }
-      
-      showSelection = svgSelection.selectAll('[type="SeatingArea"],[type="Stage"]');
-    } else if (selection.attr('type') === 'SeatingAreaExpose') {
-      hideSelection = svgSelection.selectAll('[type="SeatingArea"],[type="Stage"]');
-      showSelection = selection;
-    }
+    let tmpIdentifier = Math.round(Math.random() * 1000000);
+    selection.attr('tmp-identifier', tmpIdentifier);
+
+    selection.attr()
+
+    let all = boardSelection.selectAll(`*`);
+    let children = selection.selectAll(`[tmp-identifier="${tmpIdentifier}"] > *`);
+    
+    hideSelection = d3.selectAll(all.nodes().filter((a: any) => {
+      return a != boardSelection.node() && a != selection.node() && children.nodes().indexOf(a) == -1 && (a.style.opacity === '' || a.style.opacity === '1');
+    }));
+
+    showSelection = svgSelection.selectAll(`[tmp-identifier="${tmpIdentifier}"] > *`);
 
     // resize
     
@@ -151,7 +152,7 @@ export class D3SeatingChart {
   }
 
   public refresh() {
-    this.zoom(this.focusedSelection);
+    this.zoom(this.focusedSelection, false);
   }
 
   private bindEvents() {

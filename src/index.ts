@@ -1,5 +1,4 @@
 import { D3SeatingChart } from './D3SeatingChart';
-export * from './D3SeatingChart';
 
 let d3sc = D3SeatingChart.attach(<any>document.getElementById('x'));
 

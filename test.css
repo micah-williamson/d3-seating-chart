@@ -6,7 +6,7 @@ svg {
   border: 1px solid #000;
 }
 
-rect[type="Stage"] {
+rect[type="Static"] {
   fill: #000;
 }
 

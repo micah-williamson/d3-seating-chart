@@ -1,16 +1,23 @@
 {
   "name": "d3-seating-chart",
   "version": "1.0.0",
-  "description": "",
-  "main": "dist/main.js",
+  "description": "A simple but pleasant seating chart written using d3js",
+  "main": "dist/d3sc.bundle.js",
   "scripts": {},
   "dependencies": {
     "@types/d3": "^4.10.0",
     "d3": "^4.10.0"
   },
   "engines": {},
-  "repository": {},
-  "keywords": [],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/iamchairs/ionic-conference-calendar-header.git"
+  },
+  "bugs": {
+    "url": "https://github.com/iamchairs/ionic-conference-calendar-header/issues"
+  },
+  "homepage": "https://github.com/iamchairs/ionic-conference-calendar-header#readme",
+  "keywords": ["d3","d3js","seating","chart","tickets"],
   "author": "Micah Williamson",
   "contributors": [],
   "license": "MIT",

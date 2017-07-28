@@ -38,7 +38,7 @@ class D3SeatingChart {
     }
     getSeats() {
         let svgSelection = d3.select(this.element);
-        return svgSelection.selectAll('[type="SeatingAreaExpose"] rect');
+        return svgSelection.selectAll('[type="SeatingAreaExpose"] > *:not([type="Static"])');
     }
     goToBoard() {
         let svgSelection = d3.select(this.element);
@@ -53,19 +53,15 @@ class D3SeatingChart {
         let boundingBox = selection.node().getBBox();
         let hideSelection;
         let showSelection;
-        if (selection.attr('type') === 'Board') {
-            if (this.focusedSelection && this.focusedSelection.attr('type') === 'SeatingAreaExpose') {
-                hideSelection = this.focusedSelection;
-            }
-            else {
-                hideSelection = svgSelection.selectAll('[type="SeatingAreaExpose"]');
-            }
-            showSelection = svgSelection.selectAll('[type="SeatingArea"],[type="Stage"]');
-        }
-        else if (selection.attr('type') === 'SeatingAreaExpose') {
-            hideSelection = svgSelection.selectAll('[type="SeatingArea"],[type="Stage"]');
-            showSelection = selection;
-        }
+        let tmpIdentifier = Math.round(Math.random() * 1000000);
+        selection.attr('tmp-identifier', tmpIdentifier);
+        selection.attr();
+        let all = boardSelection.selectAll(`*`);
+        let children = selection.selectAll(`[tmp-identifier="${tmpIdentifier}"] > *`);
+        hideSelection = d3.selectAll(all.nodes().filter((a) => {
+            return a != boardSelection.node() && a != selection.node() && children.nodes().indexOf(a) == -1 && (a.style.opacity === '' || a.style.opacity === '1');
+        }));
+        showSelection = svgSelection.selectAll(`[tmp-identifier="${tmpIdentifier}"] > *`);
         let parentWidth = this.element.clientWidth;
         let parentHeight = this.element.clientHeight;
         let desiredWidth = parentWidth - this.margin * 2;
@@ -106,7 +102,7 @@ class D3SeatingChart {
         this.focusedSelection = selection;
     }
     refresh() {
-        this.zoom(this.focusedSelection);
+        this.zoom(this.focusedSelection, false);
     }
     bindEvents() {
         let svgSelection = d3.select(this.element);
