@@ -1,0 +1,1 @@
+import 'dist/D3SeatingChart.d.ts';

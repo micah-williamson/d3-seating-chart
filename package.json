@@ -1,6 +1,6 @@
 {
   "name": "d3-seating-chart",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "A simple but pleasant seating chart written using d3js",
   "main": "dist/d3sc.bundle.js",
   "scripts": {},

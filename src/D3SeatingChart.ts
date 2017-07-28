@@ -1,5 +1,5 @@
 import * as d3 from 'd3';
-import { Selection } from "d3";
+import { Selection, EnterElement } from "d3";
 
 interface IBoundingBox {
   x: number;

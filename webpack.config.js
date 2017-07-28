@@ -12,7 +12,7 @@ module.exports = {
     filename: "[name].bundle.js"
   },
   plugins: [
-    new webpack.optimize.CommonsChunkPlugin({ name: 'vendor', minChunks: Infinity }),
+    new webpack.optimize.CommonsChunkPlugin({ names: ['d3sc', 'vendor'], minChunks: Infinity })
   ],
   resolve: {
     // Add `.ts` and `.tsx` as a resolvable extension.

@@ -1,12 +1,13 @@
 {
     "compilerOptions": {
-        "module": "commonjs",
+        "module": "none",
         "target": "es6",
         "noImplicitAny": true,
         "removeComments": true,
         "preserveConstEnums": true,
         "sourceMap": true,
-        "outDir": "dist"
+        "declaration": true,
+        "outDir": "."
     },
     "lib": [
       "dom",
@@ -15,6 +16,6 @@
       "es6"
     ],
     "files": [
-        "src/index.ts"
+        "src/D3SeatingChart.ts"
     ]
 }
