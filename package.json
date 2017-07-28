@@ -1,0 +1,22 @@
+{
+  "name": "d3-seating-chart",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/main.js",
+  "scripts": {},
+  "dependencies": {
+    "@types/d3": "^4.10.0",
+    "d3": "^4.10.0"
+  },
+  "engines": {},
+  "repository": {},
+  "keywords": [],
+  "author": "Micah Williamson",
+  "contributors": [],
+  "license": "MIT",
+  "devDependencies": {
+    "ts-loader": "^2.3.2",
+    "typescript": "^2.4.2",
+    "webpack": "^3.4.1"
+  }
+}

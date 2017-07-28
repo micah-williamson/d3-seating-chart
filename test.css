@@ -1,0 +1,33 @@
+body {
+  background-color: #1d74aa;
+}
+
+svg {
+  border: 1px solid #000;
+}
+
+rect[type="Stage"] {
+  fill: #000;
+}
+
+rect[type="SeatingArea"] {
+  cursor: pointer;
+  fill: #ffffff;
+}
+
+g[type="SeatingAreaExpose"] rect {
+  fill: #efefef;
+}
+
+g[type="SeatingAreaExpose"] .reserved {
+  fill: #00bfff;
+}
+
+g[type="SeatingAreaExpose"] .active {
+  fill: #ffe100;
+}
+
+g[type="SeatingAreaExpose"] :not(.active):not(.reserved):hover {
+  fill: #ffffff;
+  cursor: pointer;
+}

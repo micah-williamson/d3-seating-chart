@@ -1,0 +1,175 @@
+import * as d3 from 'd3';
+import { Selection } from "d3";
+
+interface IBoundingBox {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+interface IDimensions {
+  width: number;
+  height: number;
+}
+
+export class D3SeatingChart {
+
+  private margin: number = 20;
+
+  private focusedSelection: any;
+
+  private focusGroup: any;
+  
+  private constructor(private element: HTMLElement) {}
+
+  private init() {
+    let svgSelection = d3.select(this.element);
+    let gSelection = svgSelection.select('g');
+
+    this.bindEvents();
+    this.zoom(gSelection, false);
+  }
+
+  public stripStyles(selector: string) {
+    let svgSelection = d3.select(this.element);
+    
+    svgSelection.selectAll(selector)
+      .attr('stroke', null)
+      .attr('stroke-width', null)
+      .attr('fill', null);
+  }
+
+  public getBoard() {
+    let svgSelection = d3.select(this.element);
+    return svgSelection.select('[type="Board"]');
+  }
+
+  public getSeatingAreas() {
+    let svgSelection = d3.select(this.element);
+    return svgSelection.selectAll('[type="SeatingArea"]');
+  }
+
+  public getSeatingAreaExposes() {
+    let svgSelection = d3.select(this.element);
+    return svgSelection.selectAll('[type="SeatingAreaExpose"]');
+  }
+
+  public getSeats() {
+    let svgSelection = d3.select(this.element);
+    return svgSelection.selectAll('[type="SeatingAreaExpose"] rect');
+  }
+
+  public goToBoard() {
+    let svgSelection = d3.select(this.element);
+    let boardSelection = svgSelection.select('[type="Board"]');
+
+    this.zoom(boardSelection);
+  }
+
+  public zoom(selection: any, animate: boolean = true) {
+    let scaleTransform: string;
+    let translateTransform: string;
+
+    let svgSelection = d3.select(this.element);
+    let boardSelection = svgSelection.select('[type="Board"]');
+
+    let boundingBox = selection.node().getBBox();
+
+    // hide other shapes
+    let hideSelection: any;
+    let showSelection: any;
+
+    if(selection.attr('type') === 'Board') {
+      if(this.focusedSelection && this.focusedSelection.attr('type') === 'SeatingAreaExpose') {
+        hideSelection = this.focusedSelection;
+      } else {
+        hideSelection = svgSelection.selectAll('[type="SeatingAreaExpose"]');
+      }
+      
+      showSelection = svgSelection.selectAll('[type="SeatingArea"],[type="Stage"]');
+    } else if (selection.attr('type') === 'SeatingAreaExpose') {
+      hideSelection = svgSelection.selectAll('[type="SeatingArea"],[type="Stage"]');
+      showSelection = selection;
+    }
+
+    // resize
+    
+    let parentWidth = this.element.clientWidth;
+    let parentHeight = this.element.clientHeight;
+
+    let desiredWidth = parentWidth - this.margin*2;
+    let desiredHeight = parentHeight - this.margin*2;
+
+    let widthRatio = desiredWidth / boundingBox.width;
+    let heightRatio = desiredHeight / boundingBox.height;
+
+    let ratio = Math.min(widthRatio, heightRatio);
+    
+    scaleTransform = `scale(${ratio})`;
+    
+    // center
+    
+    let newX = (this.element.clientWidth/2 - boundingBox.width*ratio/2 - boundingBox.x*ratio);
+    let newY = (this.element.clientHeight/2 - boundingBox.height*ratio/2 - boundingBox.y*ratio);
+
+    translateTransform = `translate(${newX},${newY})`;
+
+    let currentTransform = selection.attr('transform');
+    if(!currentTransform) {
+      currentTransform = 'translate(0, 0)scale(1)';
+    }
+
+    // transition
+    if(hideSelection) {
+      
+      hideSelection
+        .style('opacity', 1)
+        .transition()
+        .duration(animate ? 300 : 0)
+        .style('opacity', 0)
+        .on('end', () => {
+          hideSelection.style('pointer-events', 'none');
+        });
+    }
+
+    if(showSelection) {
+      showSelection.transition()
+        .style('opacity', 0)
+        .duration(animate ? 300 : 0)
+        .style('opacity', 1)
+        .on('end', () => {
+          showSelection.style('pointer-events', 'inherit');
+        });
+    }
+
+    boardSelection.transition()
+      .duration(animate ? 300 : 0)
+      .attr('transform', `${translateTransform}${scaleTransform}`);
+
+    this.focusedSelection = selection;
+  }
+
+  public refresh() {
+    this.zoom(this.focusedSelection);
+  }
+
+  private bindEvents() {
+    let svgSelection = d3.select(this.element);
+    let selection = svgSelection.selectAll('[type="SeatingArea"]');
+
+    selection.on('click', (d) => {
+      let ele = d3.event.srcElement;
+      let expose = ele.getAttribute('expose');
+      if(expose) {
+        this.zoom(svgSelection.select(`[name="${expose}"]`))
+      }
+    });
+  }
+
+  static attach(element: HTMLElement) {
+    let d3s = new D3SeatingChart(element);
+    d3s.init();
+    return d3s;
+  }
+}
