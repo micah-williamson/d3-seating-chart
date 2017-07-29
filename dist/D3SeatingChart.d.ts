@@ -4,6 +4,8 @@ export declare class D3SeatingChart {
     private margin;
     private focusedSelection;
     private focusGroup;
+    private history;
+    private zoomChangedListeners;
     private constructor();
     private init();
     stripStyles(selector: string): void;
@@ -12,6 +14,10 @@ export declare class D3SeatingChart {
     getSeatingAreaExposes(): Selection<Element | Window | Document | EnterElement, {}, HTMLElement, {}>;
     getSeats(): Selection<Element | Window | Document | EnterElement, {}, HTMLElement, {}>;
     goToBoard(): void;
+    clearHistory(): void;
+    canGoBack(): boolean;
+    goBack(): void;
+    registerZoomChangeListener(fn: Function): () => void;
     zoom(selection: any, animate?: boolean): void;
     refresh(): void;
     private bindEvents();
