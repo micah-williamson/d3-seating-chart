@@ -20,6 +20,10 @@ export class D3SeatingChart {
   private focusedSelection: any;
 
   private focusGroup: any;
+
+  private history: any[] = [];
+
+  private zoomChangedListeners: Function[] = [];
   
   private constructor(private element: HTMLElement) {}
 
@@ -67,6 +71,36 @@ export class D3SeatingChart {
     this.zoom(boardSelection);
   }
 
+  public clearHistory() {
+    this.history.length = 0;
+  }
+
+  public canGoBack() {
+    console.log(this.history);
+    return !!this.history.length;
+  }
+
+  public goBack() {
+    this.history.pop();
+
+    if(this.history.length) {
+      this.zoom(this.history[this.history.length-1]);
+    } else {
+      this.goToBoard();
+    }
+  }
+
+  public registerZoomChangeListener(fn: Function) {
+    this.zoomChangedListeners.push(fn);
+
+    return () => {
+      let idx = this.zoomChangedListeners.indexOf(fn);
+      if(idx != -1) {
+        this.zoomChangedListeners.splice(idx, 1);
+      }
+    };
+  }
+
   public zoom(selection: any, animate: boolean = true) {
     let scaleTransform: string;
     let translateTransform: string;
@@ -75,6 +109,13 @@ export class D3SeatingChart {
     let boardSelection = svgSelection.select('[type="Board"]');
 
     let boundingBox = selection.node().getBBox();
+
+    // register history
+    if(selection.node() !== boardSelection.node()) {
+      this.history.push(selection);
+    } else {
+      this.clearHistory();
+    }
 
     // hide other shapes
     let hideSelection: any;
@@ -149,6 +190,12 @@ export class D3SeatingChart {
       .attr('transform', `${translateTransform}${scaleTransform}`);
 
     this.focusedSelection = selection;
+
+    // notify listeners
+    let tmpListeners = this.zoomChangedListeners.concat([]);
+    tmpListeners.forEach((listener) => {
+      listener();
+    });
   }
 
   public refresh() {

@@ -125,6 +125,33 @@ d3sc.zoom(d3sc.getBoard().select('.the-best-chair')); // animates
 d3sc.zoom(d3sc.getBoard().select('.the-best-chair'), false); // does not animate
 ```
 
+**canGoBack**
+
+All non Board zooms are remembered in a history chain. If you are not at the root level (Board) this will return true.
+
+**goBack**
+
+Will zoom to the last selection in history.
+
+```
+if(d3sc.canGoBack()) {
+  d3sc.goBack()
+}
+```
+
+**registerZoomChangeListener**
+
+Register a callback listener for when the zoom is changed. This method return an unregister function.
+
+var unreg = d3sc.registerZoomChangeListener(() => {
+  console.log('should run once');
+  unreg();
+});
+
+d3sc.registerZoomChangeListener(() => {
+  console.log('should run everytime');
+});
+
 ## Events
 
 This package doesn't do any advanced event handling. The `D3SeatingChart` class has methods for returning d3 selections.

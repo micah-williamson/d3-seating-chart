@@ -10,6 +10,8 @@ class D3SeatingChart {
     constructor(element) {
         this.element = element;
         this.margin = 20;
+        this.history = [];
+        this.zoomChangedListeners = [];
     }
     init() {
         let svgSelection = d3.select(this.element);
@@ -45,12 +47,43 @@ class D3SeatingChart {
         let boardSelection = svgSelection.select('[type="Board"]');
         this.zoom(boardSelection);
     }
+    clearHistory() {
+        this.history.length = 0;
+    }
+    canGoBack() {
+        console.log(this.history);
+        return !!this.history.length;
+    }
+    goBack() {
+        this.history.pop();
+        if (this.history.length) {
+            this.zoom(this.history[this.history.length - 1]);
+        }
+        else {
+            this.goToBoard();
+        }
+    }
+    registerZoomChangeListener(fn) {
+        this.zoomChangedListeners.push(fn);
+        return () => {
+            let idx = this.zoomChangedListeners.indexOf(fn);
+            if (idx != -1) {
+                this.zoomChangedListeners.splice(idx, 1);
+            }
+        };
+    }
     zoom(selection, animate = true) {
         let scaleTransform;
         let translateTransform;
         let svgSelection = d3.select(this.element);
         let boardSelection = svgSelection.select('[type="Board"]');
         let boundingBox = selection.node().getBBox();
+        if (selection.node() !== boardSelection.node()) {
+            this.history.push(selection);
+        }
+        else {
+            this.clearHistory();
+        }
         let hideSelection;
         let showSelection;
         let tmpIdentifier = Math.round(Math.random() * 1000000);
@@ -100,6 +133,10 @@ class D3SeatingChart {
             .duration(animate ? 300 : 0)
             .attr('transform', `${translateTransform}${scaleTransform}`);
         this.focusedSelection = selection;
+        let tmpListeners = this.zoomChangedListeners.concat([]);
+        tmpListeners.forEach((listener) => {
+            listener();
+        });
     }
     refresh() {
         this.zoom(this.focusedSelection, false);
@@ -134,6 +171,13 @@ exports.D3SeatingChart = D3SeatingChart;
 Object.defineProperty(exports, "__esModule", { value: true });
 const D3SeatingChart_1 = __webpack_require__(0);
 let d3sc = D3SeatingChart_1.D3SeatingChart.attach(document.getElementById('x'));
+var unreg = d3sc.registerZoomChangeListener(() => {
+    console.log('should run once');
+    unreg();
+});
+d3sc.registerZoomChangeListener(() => {
+    console.log('should run everytime');
+});
 d3sc.getSeats().on('click', function () {
     let ele = this;
     if (ele.classList.contains('reserved')) {
@@ -148,6 +192,14 @@ d3sc.getSeats().on('click', function () {
 });
 document.getElementById('goToBoard').onclick = function () {
     d3sc.goToBoard();
+};
+document.getElementById('goBack').onclick = function () {
+    if (d3sc.canGoBack()) {
+        d3sc.goBack();
+    }
+    else {
+        console.log('you cant go back');
+    }
 };
 
 
