@@ -1,1 +1,1 @@
-export * from 'dist/d3sc.bundle.js';
+exports.D3SeatingChart = require('./dist/D3SeatingChart.js').D3SeatingChart;

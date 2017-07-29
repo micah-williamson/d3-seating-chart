@@ -3,16 +3,16 @@ var webpack = require('webpack');
 module.exports = {
   context: __dirname,
   entry: {
-    test: './src/index.ts',
+    test: './src/test.ts',
     d3sc: './src/D3SeatingChart.ts',
     vendor: './src/vendor.ts'
   },
   output: {
-    path: __dirname + "/dist",
+    path: __dirname + "/test",
     filename: "[name].bundle.js"
   },
   plugins: [
-    new webpack.optimize.CommonsChunkPlugin({ names: ['d3sc', 'vendor'], minChunks: Infinity })
+    new webpack.optimize.CommonsChunkPlugin({ names: ['vendor'], minChunks: Infinity })
   ],
   resolve: {
     // Add `.ts` and `.tsx` as a resolvable extension.

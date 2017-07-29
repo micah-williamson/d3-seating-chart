@@ -7,10 +7,10 @@ export declare class D3SeatingChart {
     private constructor();
     private init();
     stripStyles(selector: string): void;
-    getBoard(): Selection<Element | Window | Document | EnterElement, {}, null, undefined>;
-    getSeatingAreas(): Selection<Element | Window | Document | EnterElement, {}, HTMLElement, {}>;
-    getSeatingAreaExposes(): Selection<Element | Window | Document | EnterElement, {}, HTMLElement, {}>;
-    getSeats(): Selection<Element | Window | Document | EnterElement, {}, HTMLElement, {}>;
+    getBoard(): Selection<Element | Document | EnterElement | Window, {}, null, undefined>;
+    getSeatingAreas(): Selection<Element | Document | EnterElement | Window, {}, HTMLElement, {}>;
+    getSeatingAreaExposes(): Selection<Element | Document | EnterElement | Window, {}, HTMLElement, {}>;
+    getSeats(): Selection<Element | Document | EnterElement | Window, {}, HTMLElement, {}>;
     goToBoard(): void;
     zoom(selection: any, animate?: boolean): void;
     refresh(): void;

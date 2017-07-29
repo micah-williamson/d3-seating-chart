@@ -1,13 +1,13 @@
 {
     "compilerOptions": {
-        "module": "none",
+        "module": "commonjs",
         "target": "es6",
         "noImplicitAny": true,
         "removeComments": true,
         "preserveConstEnums": true,
         "sourceMap": true,
         "declaration": true,
-        "outDir": "."
+        "outDir": "dist/"
     },
     "lib": [
       "dom",

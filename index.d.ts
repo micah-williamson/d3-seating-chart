@@ -1,1 +1,1 @@
-import 'dist/D3SeatingChart.d.ts';
+export * from './dist/D3SeatingChart';
