@@ -46,7 +46,6 @@ class D3SeatingChart {
         this.history.length = 0;
     }
     canGoBack() {
-        console.log(this.history);
         return !!this.history.length;
     }
     goBack() {

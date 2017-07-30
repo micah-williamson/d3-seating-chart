@@ -76,7 +76,6 @@ export class D3SeatingChart {
   }
 
   public canGoBack() {
-    console.log(this.history);
     return !!this.history.length;
   }
 
