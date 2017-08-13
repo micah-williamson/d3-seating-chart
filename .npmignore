@@ -6,3 +6,4 @@ test.js
 tsconfig.json
 webpack.config.js
 package-lock.json
+*.gif

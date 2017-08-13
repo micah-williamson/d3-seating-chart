@@ -1,6 +1,8 @@
-import { D3SeatingChart } from './D3SeatingChart';
+import { D3SeatingChart, ShowBehavior } from './D3SeatingChart';
 
-let d3sc = D3SeatingChart.attach(<any>document.getElementById('x'));
+let d3sc = D3SeatingChart.attach(<any>document.getElementById('x'), {
+  showBehavior: ShowBehavior.AllDecendants
+});
 
 var unreg = d3sc.registerZoomChangeListener(() => {
   console.log('should run once');

@@ -1,6 +1,6 @@
 {
   "name": "d3-seating-chart",
-  "version": "1.1.2",
+  "version": "1.2.0",
   "description": "A simple but pleasant seating chart written using d3js",
   "main": "index.js",
   "scripts": {},
@@ -17,7 +17,14 @@
     "url": "https://github.com/iamchairs/d3-seating-chart/issues"
   },
   "homepage": "https://github.com/iamchairs/d3-seating-chart#readme",
-  "keywords": ["d3-seating-chart", "d3","d3js","seating","chart","tickets"],
+  "keywords": [
+    "d3-seating-chart",
+    "d3",
+    "d3js",
+    "seating",
+    "chart",
+    "tickets"
+  ],
   "author": "Micah Williamson",
   "contributors": [],
   "license": "MIT",

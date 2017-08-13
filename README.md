@@ -143,6 +143,7 @@ if(d3sc.canGoBack()) {
 
 Register a callback listener for when the zoom is changed. This method return an unregister function.
 
+```
 var unreg = d3sc.registerZoomChangeListener(() => {
   console.log('should run once');
   unreg();
@@ -151,10 +152,56 @@ var unreg = d3sc.registerZoomChangeListener(() => {
 d3sc.registerZoomChangeListener(() => {
   console.log('should run everytime');
 });
+```
+
+## Config
+
+When attaching `D3SeatingChart` to an svg, an optional configuration can be passed in.
+
+```
+D3SeatingChart.attach(element, { ... config ... });
+```
+
+**Options**
+
+|              | Data Type | Default                       | Description                                                                                           |
+|--------------|-----------|-------------------------------|-------------------------------------------------------------------------------------------------------|
+| showBehavior | enum      | ShowBehavior.DirectDecendants | Changes the show behavior for zooming. Possible values are `All`, `DirectDecendants`, `AllDecendants` |
+
+**ShowBehavior**
+
+Changing the `ShowBehavior` changes the elements that are shown/hidden when zoom is called. This does not affect `pointer-events`.
+
+```
+import {D3SeatingChart, ShowBehavior} from 'd3-seating-chart';
+
+D3SeatingChart.attach(element, {
+  showBehavior: ShowBehavior.DirectDecendants
+});
+```
+
+To hide the seating area you can set it's fill color to `transparent`.
+
+```
+rect[type="SeatingArea"] {
+  cursor: pointer;
+  fill: transparent;
+}
+```
+
+**ShowAll**
+
+![](https://github.com/iamchairs/d3-seating-chart/raw/master/showall.gif "showall")
+
+**AllDecendants**
+
+![](https://github.com/iamchairs/d3-seating-chart/raw/master/showall.gif "alldecendants")
 
 ## Events
 
-This package doesn't do any advanced event handling. The `D3SeatingChart` class has methods for returning d3 selections.
+This package doesn't do any event handling for elements inside the Board. The `D3SeatingChart` class has methods for returning d3 selections.
+
+Elements that are not direct decendants of the zoomed element will have `pointer-events` set to `none`.
 
 ```
   d3sc.getBoard().on('click', function() {}); // [type="Board"]

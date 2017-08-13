@@ -6,6 +6,16 @@ webpackJsonp([1],[
 
 Object.defineProperty(exports, "__esModule", { value: true });
 const d3 = __webpack_require__(1);
+const style_inline_1 = __webpack_require__(4);
+var ShowBehavior;
+(function (ShowBehavior) {
+    ShowBehavior[ShowBehavior["All"] = 1] = "All";
+    ShowBehavior[ShowBehavior["DirectDecendants"] = 2] = "DirectDecendants";
+    ShowBehavior[ShowBehavior["AllDecendants"] = 3] = "AllDecendants";
+})(ShowBehavior = exports.ShowBehavior || (exports.ShowBehavior = {}));
+const D3SeatingChartDefaultConfig = {
+    showBehavior: ShowBehavior.DirectDecendants
+};
 class D3SeatingChart {
     constructor(element) {
         this.element = element;
@@ -13,9 +23,15 @@ class D3SeatingChart {
         this.history = [];
         this.zoomChangedListeners = [];
     }
-    init() {
+    init(config) {
         let svgSelection = d3.select(this.element);
         let gSelection = svgSelection.select('g');
+        this.config = config;
+        this.uniqueIdentifier = `d3sc_${Math.round(Math.random() * 10000000000)}`;
+        this.element.setAttribute(this.uniqueIdentifier, '');
+        let style = document.createElement('style');
+        style.innerHTML = style_inline_1.InlineStyle.replace(/\{@uid\}/g, this.uniqueIdentifier);
+        this.element.appendChild(style);
         this.bindEvents();
         this.zoom(gSelection, false);
     }
@@ -51,7 +67,6 @@ class D3SeatingChart {
         this.history.length = 0;
     }
     canGoBack() {
-        console.log(this.history);
         return !!this.history.length;
     }
     goBack() {
@@ -78,23 +93,17 @@ class D3SeatingChart {
         let svgSelection = d3.select(this.element);
         let boardSelection = svgSelection.select('[type="Board"]');
         let boundingBox = selection.node().getBBox();
+        svgSelection.selectAll('.focused').classed('focused', false);
+        selection.classed('focused', true);
+        this.focusedElement = selection;
         if (selection.node() !== boardSelection.node()) {
             this.history.push(selection);
         }
         else {
             this.clearHistory();
         }
-        let hideSelection;
-        let showSelection;
-        let tmpIdentifier = Math.round(Math.random() * 1000000);
-        selection.attr('tmp-identifier', tmpIdentifier);
-        selection.attr();
         let all = boardSelection.selectAll(`*`);
-        let children = selection.selectAll(`[tmp-identifier="${tmpIdentifier}"] > *`);
-        hideSelection = d3.selectAll(all.nodes().filter((a) => {
-            return a != boardSelection.node() && a != selection.node() && children.nodes().indexOf(a) == -1 && (a.style.opacity === '' || a.style.opacity === '1');
-        }));
-        showSelection = svgSelection.selectAll(`[tmp-identifier="${tmpIdentifier}"] > *`);
+        let activeLayer = selection.selectAll('.focused > *');
         let parentWidth = this.element.clientWidth;
         let parentHeight = this.element.clientHeight;
         let desiredWidth = parentWidth - this.margin * 2;
@@ -110,36 +119,54 @@ class D3SeatingChart {
         if (!currentTransform) {
             currentTransform = 'translate(0, 0)scale(1)';
         }
-        if (hideSelection) {
-            hideSelection
+        if (this.config.showBehavior !== ShowBehavior.All) {
+            let hideList = this.getHideList(selection);
+            let showList = this.getShowList(selection);
+            hideList
                 .style('opacity', 1)
                 .transition()
                 .duration(animate ? 300 : 0)
-                .style('opacity', 0)
-                .on('end', () => {
-                hideSelection.style('pointer-events', 'none');
-            });
-        }
-        if (showSelection) {
-            showSelection.transition()
+                .style('opacity', 0);
+            showList.transition()
                 .style('opacity', 0)
                 .duration(animate ? 300 : 0)
-                .style('opacity', 1)
-                .on('end', () => {
-                showSelection.style('pointer-events', 'inherit');
-            });
+                .style('opacity', 1);
         }
         boardSelection.transition()
             .duration(animate ? 300 : 0)
             .attr('transform', `${translateTransform}${scaleTransform}`);
-        this.focusedSelection = selection;
         let tmpListeners = this.zoomChangedListeners.concat([]);
         tmpListeners.forEach((listener) => {
             listener();
         });
     }
+    getInverse(selection) {
+    }
+    getShowList(selection) {
+        if (this.config.showBehavior === ShowBehavior.AllDecendants) {
+            return selection.selectAll('.focused *');
+        }
+        else {
+            return selection.selectAll('.focused > *');
+        }
+    }
+    getHideList(selection) {
+        let svgSelection = d3.select(this.element);
+        let boardSelection = svgSelection.select('[type="Board"]');
+        let all = boardSelection.selectAll(`*`);
+        let children;
+        if (this.config.showBehavior === ShowBehavior.AllDecendants) {
+            children = selection.selectAll('.focused *');
+        }
+        else {
+            children = selection.selectAll('.focused > *');
+        }
+        return d3.selectAll(all.nodes().filter((a) => {
+            return a != boardSelection.node() && a != selection.node() && children.nodes().indexOf(a) == -1 && (a.style.opacity === '' || a.style.opacity === '1');
+        }));
+    }
     refresh() {
-        this.zoom(this.focusedSelection, false);
+        this.zoom(this.focusedElement, false);
     }
     bindEvents() {
         let svgSelection = d3.select(this.element);
@@ -152,13 +179,34 @@ class D3SeatingChart {
             }
         });
     }
-    static attach(element) {
+    static attach(element, config = D3SeatingChartDefaultConfig) {
         let d3s = new D3SeatingChart(element);
-        d3s.init();
+        d3s.init(config);
         return d3s;
     }
 }
 exports.D3SeatingChart = D3SeatingChart;
+
+
+/***/ }),
+/* 1 */,
+/* 2 */,
+/* 3 */,
+/* 4 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.InlineStyle = `
+  [{@uid}] * {
+    pointer-events: none;
+  }
+
+  [{@uid}] .focused, svg .focused > * {
+    pointer-events: initial;
+  }
+`;
 
 
 /***/ })

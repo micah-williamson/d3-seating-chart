@@ -12,7 +12,7 @@ rect[type="Static"] {
 
 rect[type="SeatingArea"] {
   cursor: pointer;
-  fill: #ffffff;
+  fill: transparent;
 }
 
 g[type="SeatingAreaExpose"] rect {

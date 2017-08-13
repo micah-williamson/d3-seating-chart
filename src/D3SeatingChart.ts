@@ -1,6 +1,8 @@
 import * as d3 from 'd3';
 import { Selection, EnterElement } from "d3";
 
+import { InlineStyle } from './style.inline';
+
 interface IBoundingBox {
   x: number;
   y: number;
@@ -13,23 +15,49 @@ interface IDimensions {
   height: number;
 }
 
+export enum ShowBehavior {
+  All = 1,
+  DirectDecendants,
+  AllDecendants
+}
+
+export interface D3SeatingChartConfig {
+  showBehavior: ShowBehavior;
+}
+
+const D3SeatingChartDefaultConfig : D3SeatingChartConfig = {
+  showBehavior: ShowBehavior.DirectDecendants
+}
+
 export class D3SeatingChart {
 
   private margin: number = 20;
 
-  private focusedSelection: any;
-
-  private focusGroup: any;
+  public focusedElement: any;
 
   private history: any[] = [];
 
   private zoomChangedListeners: Function[] = [];
+
+  private config: D3SeatingChartConfig;
+
+  private uniqueIdentifier: string;
   
   private constructor(private element: HTMLElement) {}
 
-  private init() {
+  private init(config: D3SeatingChartConfig) {
     let svgSelection = d3.select(this.element);
     let gSelection = svgSelection.select('g');
+
+    this.config = config;
+
+    this.uniqueIdentifier = `d3sc_${Math.round(Math.random()*10000000000)}`;
+    this.element.setAttribute(this.uniqueIdentifier, '');
+
+    let style = document.createElement('style');
+    style.innerHTML = InlineStyle.replace(/\{@uid\}/g, this.uniqueIdentifier);
+
+    this.element.appendChild(style);
 
     this.bindEvents();
     this.zoom(gSelection, false);
@@ -109,6 +137,13 @@ export class D3SeatingChart {
 
     let boundingBox = selection.node().getBBox();
 
+    // Unset focused element
+    svgSelection.selectAll('.focused').classed('focused', false);
+
+    // Set new focused element
+    selection.classed('focused', true);
+    this.focusedElement = selection;
+
     // register history
     if(selection.node() !== boardSelection.node()) {
       this.history.push(selection);
@@ -116,23 +151,9 @@ export class D3SeatingChart {
       this.clearHistory();
     }
 
-    // hide other shapes
-    let hideSelection: any;
-    let showSelection: any;
-
-    let tmpIdentifier = Math.round(Math.random() * 1000000);
-    selection.attr('tmp-identifier', tmpIdentifier);
-
-    selection.attr()
-
+    // get active layer
     let all = boardSelection.selectAll(`*`);
-    let children = selection.selectAll(`[tmp-identifier="${tmpIdentifier}"] > *`);
-    
-    hideSelection = d3.selectAll(all.nodes().filter((a: any) => {
-      return a != boardSelection.node() && a != selection.node() && children.nodes().indexOf(a) == -1 && (a.style.opacity === '' || a.style.opacity === '1');
-    }));
-
-    showSelection = svgSelection.selectAll(`[tmp-identifier="${tmpIdentifier}"] > *`);
+    let activeLayer = selection.selectAll('.focused > *');
 
     // resize
     
@@ -162,33 +183,27 @@ export class D3SeatingChart {
     }
 
     // transition
-    if(hideSelection) {
-      
-      hideSelection
+    if(this.config.showBehavior !== ShowBehavior.All) {
+      let hideList = this.getHideList(selection);
+      let showList = this.getShowList(selection);
+
+      hideList
         .style('opacity', 1)
         .transition()
         .duration(animate ? 300 : 0)
-        .style('opacity', 0)
-        .on('end', () => {
-          hideSelection.style('pointer-events', 'none');
-        });
-    }
+        .style('opacity', 0);
 
-    if(showSelection) {
-      showSelection.transition()
+      showList.transition()
         .style('opacity', 0)
         .duration(animate ? 300 : 0)
-        .style('opacity', 1)
-        .on('end', () => {
-          showSelection.style('pointer-events', 'inherit');
-        });
+        .style('opacity', 1);
     }
+      
+    //activeLayer.style('pointer-events', 'inherit');
 
     boardSelection.transition()
       .duration(animate ? 300 : 0)
       .attr('transform', `${translateTransform}${scaleTransform}`);
-
-    this.focusedSelection = selection;
 
     // notify listeners
     let tmpListeners = this.zoomChangedListeners.concat([]);
@@ -197,8 +212,37 @@ export class D3SeatingChart {
     });
   }
 
+  private getInverse(selection: any) {
+
+  }
+
+  private getShowList(selection: any) {
+    if(this.config.showBehavior === ShowBehavior.AllDecendants) {
+      return selection.selectAll('.focused *');
+    } else {
+      return selection.selectAll('.focused > *');
+    }
+  }
+
+  private getHideList(selection: any) {
+    let svgSelection = d3.select(this.element);
+    let boardSelection = svgSelection.select('[type="Board"]');
+    let all = boardSelection.selectAll(`*`);
+    let children: any;
+
+    if(this.config.showBehavior === ShowBehavior.AllDecendants) {
+      children = selection.selectAll('.focused *');
+    } else {
+      children = selection.selectAll('.focused > *');
+    }
+
+    return d3.selectAll(all.nodes().filter((a: any) => {
+      return a != boardSelection.node() && a != selection.node() && children.nodes().indexOf(a) == -1 && (a.style.opacity === '' || a.style.opacity === '1');
+    }));
+  }
+
   public refresh() {
-    this.zoom(this.focusedSelection, false);
+    this.zoom(this.focusedElement, false);
   }
 
   private bindEvents() {
@@ -214,9 +258,9 @@ export class D3SeatingChart {
     });
   }
 
-  static attach(element: HTMLElement) {
+  static attach(element: HTMLElement, config: D3SeatingChartConfig = D3SeatingChartDefaultConfig) {
     let d3s = new D3SeatingChart(element);
-    d3s.init();
+    d3s.init(config);
     return d3s;
   }
 }
