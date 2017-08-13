@@ -195,7 +195,7 @@ rect[type="SeatingArea"] {
 
 **AllDecendants**
 
-![](https://github.com/iamchairs/d3-seating-chart/raw/master/showall.gif "alldecendants")
+![](https://github.com/iamchairs/d3-seating-chart/raw/master/alldecendants.gif "alldecendants")
 
 ## Events
 
