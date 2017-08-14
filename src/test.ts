@@ -30,6 +30,10 @@ document.getElementById('goToBoard').onclick = function() {
   d3sc.goToBoard();
 }
 
+document.getElementById('refresh').onclick = function() {
+  d3sc.refresh();
+}
+
 document.getElementById('goBack').onclick = function() {
   if(d3sc.canGoBack()) {
     d3sc.goBack();

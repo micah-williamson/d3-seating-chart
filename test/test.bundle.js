@@ -6,7 +6,7 @@ webpackJsonp([0,1],[
 
 Object.defineProperty(exports, "__esModule", { value: true });
 const d3 = __webpack_require__(1);
-const style_inline_1 = __webpack_require__(4);
+const style_inline_1 = __webpack_require__(2);
 var ShowBehavior;
 (function (ShowBehavior) {
     ShowBehavior[ShowBehavior["All"] = 1] = "All";
@@ -93,15 +93,17 @@ class D3SeatingChart {
         let svgSelection = d3.select(this.element);
         let boardSelection = svgSelection.select('[type="Board"]');
         let boundingBox = selection.node().getBBox();
-        svgSelection.selectAll('.focused').classed('focused', false);
-        selection.classed('focused', true);
-        this.focusedElement = selection;
         if (selection.node() !== boardSelection.node()) {
-            this.history.push(selection);
+            if (selection != this.focusedElement) {
+                this.history.push(selection);
+            }
         }
         else {
             this.clearHistory();
         }
+        svgSelection.selectAll('.focused').classed('focused', false);
+        selection.classed('focused', true);
+        this.focusedElement = selection;
         let all = boardSelection.selectAll(`*`);
         let activeLayer = selection.selectAll('.focused > *');
         let parentWidth = this.element.clientWidth;
@@ -196,6 +198,24 @@ exports.D3SeatingChart = D3SeatingChart;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.InlineStyle = `
+  [{@uid}] * {
+    pointer-events: none;
+  }
+
+  [{@uid}] .focused, svg .focused > * {
+    pointer-events: initial;
+  }
+`;
+
+
+/***/ }),
+/* 3 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
 const D3SeatingChart_1 = __webpack_require__(0);
 let d3sc = D3SeatingChart_1.D3SeatingChart.attach(document.getElementById('x'), {
     showBehavior: D3SeatingChart_1.ShowBehavior.AllDecendants
@@ -222,6 +242,9 @@ d3sc.getSeats().on('click', function () {
 document.getElementById('goToBoard').onclick = function () {
     d3sc.goToBoard();
 };
+document.getElementById('refresh').onclick = function () {
+    d3sc.refresh();
+};
 document.getElementById('goBack').onclick = function () {
     if (d3sc.canGoBack()) {
         d3sc.goBack();
@@ -232,24 +255,5 @@ document.getElementById('goBack').onclick = function () {
 };
 
 
-/***/ }),
-/* 3 */,
-/* 4 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.InlineStyle = `
-  [{@uid}] * {
-    pointer-events: none;
-  }
-
-  [{@uid}] .focused, svg .focused > * {
-    pointer-events: initial;
-  }
-`;
-
-
 /***/ })
-],[2]);
+],[3]);

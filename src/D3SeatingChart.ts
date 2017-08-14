@@ -137,19 +137,21 @@ export class D3SeatingChart {
 
     let boundingBox = selection.node().getBBox();
 
+    // register history
+    if(selection.node() !== boardSelection.node()) {
+      if(selection != this.focusedElement) {
+        this.history.push(selection);
+      }
+    } else {
+      this.clearHistory();
+    }
+
     // Unset focused element
     svgSelection.selectAll('.focused').classed('focused', false);
 
     // Set new focused element
     selection.classed('focused', true);
     this.focusedElement = selection;
-
-    // register history
-    if(selection.node() !== boardSelection.node()) {
-      this.history.push(selection);
-    } else {
-      this.clearHistory();
-    }
 
     // get active layer
     let all = boardSelection.selectAll(`*`);

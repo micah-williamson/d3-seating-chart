@@ -6,7 +6,7 @@ webpackJsonp([1],[
 
 Object.defineProperty(exports, "__esModule", { value: true });
 const d3 = __webpack_require__(1);
-const style_inline_1 = __webpack_require__(4);
+const style_inline_1 = __webpack_require__(2);
 var ShowBehavior;
 (function (ShowBehavior) {
     ShowBehavior[ShowBehavior["All"] = 1] = "All";
@@ -93,15 +93,17 @@ class D3SeatingChart {
         let svgSelection = d3.select(this.element);
         let boardSelection = svgSelection.select('[type="Board"]');
         let boundingBox = selection.node().getBBox();
-        svgSelection.selectAll('.focused').classed('focused', false);
-        selection.classed('focused', true);
-        this.focusedElement = selection;
         if (selection.node() !== boardSelection.node()) {
-            this.history.push(selection);
+            if (selection != this.focusedElement) {
+                this.history.push(selection);
+            }
         }
         else {
             this.clearHistory();
         }
+        svgSelection.selectAll('.focused').classed('focused', false);
+        selection.classed('focused', true);
+        this.focusedElement = selection;
         let all = boardSelection.selectAll(`*`);
         let activeLayer = selection.selectAll('.focused > *');
         let parentWidth = this.element.clientWidth;
@@ -190,9 +192,7 @@ exports.D3SeatingChart = D3SeatingChart;
 
 /***/ }),
 /* 1 */,
-/* 2 */,
-/* 3 */,
-/* 4 */
+/* 2 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
