@@ -88,15 +88,17 @@ class D3SeatingChart {
         let svgSelection = d3.select(this.element);
         let boardSelection = svgSelection.select('[type="Board"]');
         let boundingBox = selection.node().getBBox();
-        svgSelection.selectAll('.focused').classed('focused', false);
-        selection.classed('focused', true);
-        this.focusedElement = selection;
         if (selection.node() !== boardSelection.node()) {
-            this.history.push(selection);
+            if (selection != this.focusedElement) {
+                this.history.push(selection);
+            }
         }
         else {
             this.clearHistory();
         }
+        svgSelection.selectAll('.focused').classed('focused', false);
+        selection.classed('focused', true);
+        this.focusedElement = selection;
         let all = boardSelection.selectAll(`*`);
         let activeLayer = selection.selectAll('.focused > *');
         let parentWidth = this.element.clientWidth;
