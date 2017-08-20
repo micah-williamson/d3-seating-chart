@@ -206,12 +206,12 @@ class D3SeatingChart {
             this.emitSelectionChangeEvent(selectionChangeEvent_model_1.SelectionChangeEventReason.LockOverride);
         }
     }
-    unlockAll(c = '', emitEvents = true) {
+    unlockAll(c = '') {
         if (c) {
-            this.unlock(`[locked="${c}"]`, emitEvents);
+            this.unlock(`[locked="${c}"]`);
         }
         else {
-            this.unlock('[locked]', emitEvents);
+            this.unlock('[locked]');
         }
     }
     unlock(ele) {
@@ -255,6 +255,159 @@ class D3SeatingChart {
         if (emitEvents && selectionChanges) {
             this.emitSelectionChangeEvent(selectionChangeEvent_model_1.SelectionChangeEventReason.SelectionChanged);
         }
+    }
+    getClosestSeats(seatingAreaName, numSeats, contiguous = true, scatterFallback = true) {
+        let stage = this.selectElement('[stage]');
+        let seatingArea = this.selectElement(`[seating-area="${seatingAreaName}"]`);
+        let seats = seatingArea.selectAll('[seat]').nodes();
+        let stageBBox = stage.node().getBBox();
+        let seatingAreaBBox = seatingArea.node().getBBox();
+        let stageCenterX = stageBBox.x + stageBBox.width / 2;
+        let stageCenterY = stageBBox.y + stageBBox.height / 2;
+        let seatingAreaCenterX = seatingAreaBBox.x + seatingAreaBBox.width / 2;
+        let seatingAreaCenterY = seatingAreaBBox.y + seatingAreaBBox.height / 2;
+        let slopeX = seatingAreaCenterX - stageCenterX;
+        let slopeY = seatingAreaCenterY - stageCenterY;
+        let direction;
+        if (Math.abs(slopeX) > Math.abs(slopeY)) {
+            direction = slopeX < 0 ? 4 : 2;
+        }
+        else {
+            direction = slopeY < 0 ? 1 : 3;
+        }
+        let sortedSeats = seats.sort((a, b) => {
+            let aX = Math.round(parseFloat(a.getAttribute('x')));
+            let aY = Math.round(parseFloat(a.getAttribute('y')));
+            let bX = Math.round(parseFloat(b.getAttribute('x')));
+            let bY = Math.round(parseFloat(b.getAttribute('y')));
+            switch (direction) {
+                case 1:
+                    if (aY < bY) {
+                        return 1;
+                    }
+                    else if (aY > bY) {
+                        return -1;
+                    }
+                    else {
+                        if (aX < bX) {
+                            return 1;
+                        }
+                        else if (aX > bX) {
+                            return -1;
+                        }
+                        else {
+                            return 0;
+                        }
+                    }
+                case 2:
+                    if (aX > bX) {
+                        return 1;
+                    }
+                    else if (aX < bX) {
+                        return -1;
+                    }
+                    else {
+                        if (aY > bY) {
+                            return 1;
+                        }
+                        else if (aY < bY) {
+                            return -1;
+                        }
+                        else {
+                            return 0;
+                        }
+                    }
+                case 3:
+                    if (aY > bY) {
+                        return 1;
+                    }
+                    else if (aY < bY) {
+                        return -1;
+                    }
+                    else {
+                        if (aX < bX) {
+                            return 1;
+                        }
+                        else if (aX > bX) {
+                            return -1;
+                        }
+                        else {
+                            return 0;
+                        }
+                    }
+                case 4:
+                    if (aX < bX) {
+                        return 1;
+                    }
+                    else if (aX > bX) {
+                        return -1;
+                    }
+                    else {
+                        if (aY > bY) {
+                            return 1;
+                        }
+                        else if (aY < bY) {
+                            return -1;
+                        }
+                        else {
+                            return 0;
+                        }
+                    }
+            }
+        });
+        if (contiguous) {
+            let sections = [];
+            let sortedSeatsCopy = sortedSeats.concat([]);
+            let j = 0;
+            do {
+                j++;
+                let br = -1;
+                let lastSeat;
+                for (let i = 0; i < sortedSeatsCopy.length; i++) {
+                    let seat = sortedSeatsCopy[i];
+                    if (seat.hasAttribute('locked')) {
+                        br = i;
+                        sortedSeatsCopy.splice(i, 1);
+                        break;
+                    }
+                    else if (lastSeat) {
+                        if (direction === 1 || direction === 3) {
+                            let lsY = Math.round(parseFloat(lastSeat.getAttribute('y')));
+                            let sY = Math.round(parseFloat(seat.getAttribute('y')));
+                            if (lsY != sY) {
+                                br = i;
+                                break;
+                            }
+                        }
+                        else {
+                            let lsX = Math.round(parseFloat(lastSeat.getAttribute('x')));
+                            let sX = Math.round(parseFloat(seat.getAttribute('x')));
+                            if (lsX != sX) {
+                                br = i;
+                                break;
+                            }
+                        }
+                    }
+                    lastSeat = seat;
+                }
+                if (br == -1) {
+                    sections.push(sortedSeatsCopy.splice(0, sortedSeatsCopy.length));
+                }
+                else {
+                    sections.push(sortedSeatsCopy.splice(0, br));
+                }
+            } while (sortedSeatsCopy.length && j < 20);
+            for (let i = 0; i < sections.length; i++) {
+                let section = sections[i];
+                if (section.length >= numSeats) {
+                    return section.splice(0, numSeats);
+                }
+            }
+        }
+        if (!contiguous || scatterFallback) {
+            return sortedSeats.filter(x => !x.hasAttribute('locked')).splice(0, numSeats);
+        }
+        return [];
     }
     emitSelectionChangeEvent(r) {
         let tmpListeners = this.selectionChangeListeners.concat([]);
