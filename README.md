@@ -389,25 +389,31 @@ contiguous rule. If `scatterFallback` is `false` in this scenario, an empty arra
 **getClosestSeats(seatingArea, numSeats, contiguous = true, scatterFallback = true)**
 
 ```
-d3sc.select(d3sc.getClosestSeats('left', 8));
+d3sc.select(d3sc.getClosestSeats('left', 3));
 ```
-
-> d3sc.getClosestSeats('left', 3)
 
 ![](https://github.com/iamchairs/d3-seating-chart/raw/master/cs1.PNG "closestseats")
 
-> d3sc.getClosestSeats('left', 3)
+```
+d3sc.select(d3sc.getClosestSeats('left', 3))
+```
 
 ![](https://github.com/iamchairs/d3-seating-chart/raw/master/cs2.PNG "closestseats2")
 
-> d3sc.getClosestSeats('left', 3, false)
+```
+d3sc.select(d3sc.getClosestSeats('left', 3, false))
+```
 
 ![](https://github.com/iamchairs/d3-seating-chart/raw/master/cs5.PNG "closestseats5")
 
-> d3sc.getClosestSeats('left', 5)
+```
+d3sc.select(d3sc.getClosestSeats('left', 5))
+```
 
 ![](https://github.com/iamchairs/d3-seating-chart/raw/master/cs3.PNG "closestseats3")
 
-> d3sc.getClosestSeats('left', 8)
+```
+d3sc.select(d3sc.getClosestSeats('left', 8))
+```
 
 ![](https://github.com/iamchairs/d3-seating-chart/raw/master/cs4.PNG "closestseats4")
