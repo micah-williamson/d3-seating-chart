@@ -29,6 +29,12 @@ import { D3SeatingChart } from './D3SeatingChart';
 let d3sc = D3SeatingChart.attach(document.getElementById('x'));
 ```
 
+## 2.1.0
+
+**Changes**
+
+* added `getClosestSeats` method
+
 ## 2.0.0
 
 **Breaking Changes**
@@ -49,8 +55,6 @@ let d3sc = D3SeatingChart.attach(document.getElementById('x'));
 ## Try It
 
 Clone this repo. Run `webpack -w`
-
-## Terminology
 
 ## SVG Format
 
@@ -368,3 +372,42 @@ d3sc.registerSelectionChangeListener((e: SelectionChangeEvent) => {
   }
 });
 ```
+
+## Get Closest Seats
+
+In some cases you may not want to give the user the option to select seats but auto assign them seats closest to the stage.
+This is used to prevent holes in the audience due to users giving themselves a one seat buffer between their group and others.
+
+This method looks at the seating area in relation to the stage and determines if it's above, right of, below, or left of the stage.
+With that it "knows" which seats are closest to the stage and automatically sorts them. This method will always return as many seats
+it can match even if the amount of seats it finds does not equal the requested `numSeats`. You should account for this in your implementation.
+
+This method allows specifying whether to search for `contiguous` seating, where it will attempt to only match adjacent seats. If not
+enough adjacent seats are found, and `scatterFallback` is set to `true`, it will select the closest seats possible and ignore the
+contiguous rule. If `scatterFallback` is `false` in this scenario, an empty array will be returned.
+
+**getClosestSeats(seatingArea, numSeats, contiguous = true, scatterFallback = true)**
+
+```
+d3sc.select(d3sc.getClosestSeats('left', 8));
+```
+
+> d3sc.getClosestSeats('left', 3)
+
+![](https://github.com/iamchairs/d3-seating-chart/raw/master/cs1.PNG "closestseats")
+
+> d3sc.getClosestSeats('left', 3)
+
+![](https://github.com/iamchairs/d3-seating-chart/raw/master/cs2.PNG "closestseats2")
+
+> d3sc.getClosestSeats('left', 3, false)
+
+![](https://github.com/iamchairs/d3-seating-chart/raw/master/cs5.PNG "closestseats5")
+
+> d3sc.getClosestSeats('left', 5)
+
+![](https://github.com/iamchairs/d3-seating-chart/raw/master/cs3.PNG "closestseats3")
+
+> d3sc.getClosestSeats('left', 8)
+
+![](https://github.com/iamchairs/d3-seating-chart/raw/master/cs4.PNG "closestseats4")

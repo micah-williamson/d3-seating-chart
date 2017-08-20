@@ -1,6 +1,6 @@
 {
   "name": "d3-seating-chart",
-  "version": "2.0.1",
+  "version": "2.1.0",
   "description": "A simple but pleasant seating chart written using d3js",
   "main": "index.js",
   "scripts": {},

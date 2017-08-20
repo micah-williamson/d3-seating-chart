@@ -66,3 +66,7 @@ document.getElementById('reserve').onclick = function() {
 document.getElementById('unreserve').onclick = function() {
   d3sc.unlock('[seat="5"]');
 }
+
+document.getElementById('closest1').onclick = function() {
+  d3sc.select(d3sc.getClosestSeats('left', 3, false));
+}
