@@ -213,7 +213,7 @@ d3sc.unlock('[seat="10"]');
 
 **selectElement**
 
-Given a dom query selector, returns the **first** element within the svg that matches the query selector. **See d3js select**
+Given a dom query selector, returns the **first** element within the svg that matches the query selector. *See d3js select*
 
 ```
 d3sc.selectElement('[seat="10"]');
@@ -221,7 +221,7 @@ d3sc.selectElement('[seat="10"]');
 
 **selectElements**
 
-Given a dom query selector, returns the elements within the svg that matches the query selector. **See d3js selectAll**
+Given a dom query selector, returns the elements within the svg that matches the query selector. *See d3js selectAll*
 
 ```
 d3sc.selectElements('[seat]');
@@ -284,14 +284,14 @@ import {D3SeatingChart, ShowBehavior, SelectionBehavior} from 'd3-seating-chart'
 
 D3SeatingChart.attach(element, {
   showBehavior: ShowBehavior.DirectDecendants,
-  selectionBehavior: SelectionBehavior.Manual
+  allowManualSelection: true
 });
 ```
 
 To hide the seating area you can set it's fill color to `transparent`.
 
 ```
-rect[type="SeatingArea"] {
+[seating-area] {
   cursor: pointer;
   fill: transparent;
 }
