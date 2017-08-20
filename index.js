@@ -1,2 +1,4 @@
-exports.D3SeatingChart = require('./dist/D3SeatingChart.js').D3SeatingChart;
-exports.ShowBehavior = require('./dist/D3SeatingChart.js').ShowBehavior;
+exports.D3SeatingChart = require('./dist/d3SeatingChart.js').D3SeatingChart;
+exports.SelectionChangeEvent = require('./dist/selectionChangeEvent.js').SelectionChangeEvent;
+exports.SelectionChangeEventReason = require('./dist/selectionChangeEvent.js').SelectionChangeEventReason;
+exports.ShowBehavior = require('./dist/showBehavior.enum.js').ShowBehavior;

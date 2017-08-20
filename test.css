@@ -6,28 +6,32 @@ svg {
   border: 1px solid #000;
 }
 
-rect[type="Static"] {
+[stage] {
   fill: #000;
 }
 
-rect[type="SeatingArea"] {
+[zoom-control] {
   cursor: pointer;
   fill: transparent;
 }
 
-g[type="SeatingAreaExpose"] rect {
+[seat] {
   fill: #efefef;
 }
 
-g[type="SeatingAreaExpose"] .reserved {
+[seat][locked] {
+  fill: #888888;
+}
+
+[seat][locked="reserved"] {
   fill: #00bfff;
 }
 
-g[type="SeatingAreaExpose"] .active {
+[seat][selected] {
   fill: #ffe100;
 }
 
-g[type="SeatingAreaExpose"] :not(.active):not(.reserved):hover {
+[seat]:not([selected]):not([locked]):hover {
   fill: #ffffff;
   cursor: pointer;
 }

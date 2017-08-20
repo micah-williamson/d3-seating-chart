@@ -5,16 +5,28 @@ webpackJsonp([0,1],[
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
-const d3 = __webpack_require__(1);
-const style_inline_1 = __webpack_require__(2);
 var ShowBehavior;
 (function (ShowBehavior) {
     ShowBehavior[ShowBehavior["All"] = 1] = "All";
     ShowBehavior[ShowBehavior["DirectDecendants"] = 2] = "DirectDecendants";
     ShowBehavior[ShowBehavior["AllDecendants"] = 3] = "AllDecendants";
 })(ShowBehavior = exports.ShowBehavior || (exports.ShowBehavior = {}));
+
+
+/***/ }),
+/* 1 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+const d3 = __webpack_require__(2);
+const style_inline_1 = __webpack_require__(3);
+const showBehavior_enum_1 = __webpack_require__(0);
+const selectionChangeEvent_model_1 = __webpack_require__(4);
 const D3SeatingChartDefaultConfig = {
-    showBehavior: ShowBehavior.DirectDecendants
+    showBehavior: showBehavior_enum_1.ShowBehavior.DirectDecendants,
+    allowManualSelection: true
 };
 class D3SeatingChart {
     constructor(element) {
@@ -22,6 +34,8 @@ class D3SeatingChart {
         this.margin = 20;
         this.history = [];
         this.zoomChangedListeners = [];
+        this.selectionChangeListeners = [];
+        this.selectedElements = [];
     }
     init(config) {
         let svgSelection = d3.select(this.element);
@@ -43,25 +57,16 @@ class D3SeatingChart {
             .attr('fill', null);
     }
     getBoard() {
-        let svgSelection = d3.select(this.element);
-        return svgSelection.select('[type="Board"]');
+        return this.selectElement('[board]');
     }
-    getSeatingAreas() {
-        let svgSelection = d3.select(this.element);
-        return svgSelection.selectAll('[type="SeatingArea"]');
+    selectElement(query) {
+        return d3.select(this.element).select(query);
     }
-    getSeatingAreaExposes() {
-        let svgSelection = d3.select(this.element);
-        return svgSelection.selectAll('[type="SeatingAreaExpose"]');
-    }
-    getSeats() {
-        let svgSelection = d3.select(this.element);
-        return svgSelection.selectAll('[type="SeatingAreaExpose"] > *:not([type="Static"])');
+    selectElements(query) {
+        return d3.select(this.element).selectAll(query);
     }
     goToBoard() {
-        let svgSelection = d3.select(this.element);
-        let boardSelection = svgSelection.select('[type="Board"]');
-        this.zoom(boardSelection);
+        this.zoom(this.getBoard());
     }
     clearHistory() {
         this.history.length = 0;
@@ -87,11 +92,19 @@ class D3SeatingChart {
             }
         };
     }
+    registerSelectionChangeListener(fn) {
+        this.selectionChangeListeners.push(fn);
+        return () => {
+            let idx = this.selectionChangeListeners.indexOf(fn);
+            if (idx != -1) {
+                this.selectionChangeListeners.splice(idx, 1);
+            }
+        };
+    }
     zoom(selection, animate = true) {
         let scaleTransform;
         let translateTransform;
-        let svgSelection = d3.select(this.element);
-        let boardSelection = svgSelection.select('[type="Board"]');
+        let boardSelection = this.getBoard();
         let boundingBox = selection.node().getBBox();
         if (selection.node() !== boardSelection.node()) {
             if (selection != this.focusedElement) {
@@ -101,7 +114,7 @@ class D3SeatingChart {
         else {
             this.clearHistory();
         }
-        svgSelection.selectAll('.focused').classed('focused', false);
+        this.selectElements('.focused').classed('focused', false);
         selection.classed('focused', true);
         this.focusedElement = selection;
         let all = boardSelection.selectAll(`*`);
@@ -121,7 +134,7 @@ class D3SeatingChart {
         if (!currentTransform) {
             currentTransform = 'translate(0, 0)scale(1)';
         }
-        if (this.config.showBehavior !== ShowBehavior.All) {
+        if (this.config.showBehavior !== showBehavior_enum_1.ShowBehavior.All) {
             let hideList = this.getHideList(selection);
             let showList = this.getShowList(selection);
             hideList
@@ -142,10 +155,8 @@ class D3SeatingChart {
             listener();
         });
     }
-    getInverse(selection) {
-    }
     getShowList(selection) {
-        if (this.config.showBehavior === ShowBehavior.AllDecendants) {
+        if (this.config.showBehavior === showBehavior_enum_1.ShowBehavior.AllDecendants) {
             return selection.selectAll('.focused *');
         }
         else {
@@ -153,11 +164,10 @@ class D3SeatingChart {
         }
     }
     getHideList(selection) {
-        let svgSelection = d3.select(this.element);
-        let boardSelection = svgSelection.select('[type="Board"]');
+        let boardSelection = this.getBoard();
         let all = boardSelection.selectAll(`*`);
         let children;
-        if (this.config.showBehavior === ShowBehavior.AllDecendants) {
+        if (this.config.showBehavior === showBehavior_enum_1.ShowBehavior.AllDecendants) {
             children = selection.selectAll('.focused *');
         }
         else {
@@ -171,15 +181,107 @@ class D3SeatingChart {
         this.zoom(this.focusedElement, false);
     }
     bindEvents() {
-        let svgSelection = d3.select(this.element);
-        let selection = svgSelection.selectAll('[type="SeatingArea"]');
-        selection.on('click', (d) => {
+        let self = this;
+        this.selectElements('[zoom-control]').on('click', (d) => {
             let ele = d3.event.srcElement;
-            let expose = ele.getAttribute('expose');
+            let expose = ele.getAttribute('zoom-control');
             if (expose) {
-                this.zoom(svgSelection.select(`[name="${expose}"]`));
+                this.zoom(this.selectElement(`[zoom-target="${expose}"]`));
             }
         });
+        if (this.config.allowManualSelection) {
+            this.selectElements('[seat]').on('click', function () {
+                let selectionsChanged = false;
+                let ele = this;
+                if (!ele.hasAttribute('locked')) {
+                    selectionsChanged = true;
+                    if (ele.hasAttribute('selected')) {
+                        self.selectedElements.splice(self.selectedElements.findIndex(x => x === ele), 1);
+                        ele.removeAttribute('selected');
+                    }
+                    else {
+                        self.selectedElements.push(ele);
+                        ele.setAttribute('selected', '');
+                    }
+                }
+                if (selectionsChanged) {
+                    self.emitSelectionChangeEvent(selectionChangeEvent_model_1.SelectionChangeEventReason.SelectionChanged);
+                }
+            });
+        }
+    }
+    lock(ele, c = '') {
+        let selectionChanges = false;
+        ele = this.resolveElements(ele);
+        ele.forEach((e) => {
+            if (!e.hasAttribute('locked') || e.getAttribute('locked') != c) {
+                e.setAttribute('locked', c);
+                if (e.hasAttribute('selected')) {
+                    e.removeAttribute('selected');
+                    selectionChanges = true;
+                }
+            }
+        });
+        if (selectionChanges) {
+            this.emitSelectionChangeEvent(selectionChangeEvent_model_1.SelectionChangeEventReason.LockOverride);
+        }
+    }
+    unlock(ele) {
+        ele = this.resolveElements(ele);
+        ele.forEach((e) => {
+            if (e.hasAttribute('locked')) {
+                e.removeAttribute('locked');
+            }
+        });
+    }
+    deselect(ele) {
+        let selectionChanges = false;
+        ele = this.resolveElements(ele);
+        ele.forEach((e) => {
+            if (e.hasAttribute('selected')) {
+                selectionChanges = true;
+                e.removeAttribute('selected');
+            }
+        });
+        if (selectionChanges) {
+            this.emitSelectionChangeEvent(selectionChangeEvent_model_1.SelectionChangeEventReason.SelectionChanged);
+        }
+    }
+    select(ele) {
+        let selectionChanges = false;
+        ele = this.resolveElements(ele);
+        ele.forEach((e) => {
+            if (!e.hasAttribute('locked')) {
+                if (!e.hasAttribute('selected')) {
+                    selectionChanges = true;
+                    e.setAttribute('selected', '');
+                }
+            }
+            else {
+                throw new Error('Unable to select element because its locked ' + e.outerHTML);
+            }
+        });
+        if (selectionChanges) {
+            this.emitSelectionChangeEvent(selectionChangeEvent_model_1.SelectionChangeEventReason.SelectionChanged);
+        }
+    }
+    emitSelectionChangeEvent(r) {
+        let tmpListeners = this.selectionChangeListeners.concat([]);
+        tmpListeners.forEach((listener) => {
+            listener({
+                reason: r,
+                selection: this.selectedElements.concat([])
+            });
+        });
+    }
+    resolveElements(ele) {
+        if (typeof (ele) === 'string') {
+            ele = this.selectElements(ele).nodes();
+        }
+        else if (!(ele instanceof Array)) {
+            ele = [ele];
+        }
+        return ele;
     }
     static attach(element, config = D3SeatingChartDefaultConfig) {
         let d3s = new D3SeatingChart(element);
@@ -191,8 +293,8 @@ exports.D3SeatingChart = D3SeatingChart;
 
 
 /***/ }),
-/* 1 */,
-/* 2 */
+/* 2 */,
+/* 3 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -210,34 +312,51 @@ exports.InlineStyle = `
 
 
 /***/ }),
-/* 3 */
+/* 4 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
-const D3SeatingChart_1 = __webpack_require__(0);
+var SelectionChangeEventReason;
+(function (SelectionChangeEventReason) {
+    SelectionChangeEventReason[SelectionChangeEventReason["SelectionChanged"] = 1] = "SelectionChanged";
+    SelectionChangeEventReason[SelectionChangeEventReason["LockOverride"] = 2] = "LockOverride";
+})(SelectionChangeEventReason = exports.SelectionChangeEventReason || (exports.SelectionChangeEventReason = {}));
+class SelectionChangeEvent {
+}
+exports.SelectionChangeEvent = SelectionChangeEvent;
+
+
+/***/ }),
+/* 5 */,
+/* 6 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+const D3SeatingChart_1 = __webpack_require__(1);
+const showBehavior_enum_1 = __webpack_require__(0);
 let d3sc = D3SeatingChart_1.D3SeatingChart.attach(document.getElementById('x'), {
-    showBehavior: D3SeatingChart_1.ShowBehavior.AllDecendants
+    showBehavior: showBehavior_enum_1.ShowBehavior.AllDecendants,
+    allowManualSelection: true
 });
 var unreg = d3sc.registerZoomChangeListener(() => {
-    console.log('should run once');
+    console.log('zoom evt should run once');
     unreg();
 });
 d3sc.registerZoomChangeListener(() => {
-    console.log('should run everytime');
+    console.log('zoom evt should run everytime');
 });
-d3sc.getSeats().on('click', function () {
-    let ele = this;
-    if (ele.classList.contains('reserved')) {
-        return;
-    }
-    if (ele.classList.contains('active')) {
-        ele.classList.remove('active');
-    }
-    else {
-        ele.classList.add('active');
-    }
+var unreg2 = d3sc.registerSelectionChangeListener((e) => {
+    console.log('select evt should run once');
+    console.log(e);
+    unreg2();
+});
+d3sc.registerSelectionChangeListener((e) => {
+    console.log(e);
+    console.log('select evt should run everytime');
 });
 document.getElementById('goToBoard').onclick = function () {
     d3sc.goToBoard();
@@ -253,7 +372,25 @@ document.getElementById('goBack').onclick = function () {
         console.log('you cant go back');
     }
 };
+document.getElementById('lock').onclick = function () {
+    d3sc.lock('[seat="5"]');
+};
+document.getElementById('unlock').onclick = function () {
+    d3sc.unlock('[seat="5"]');
+};
+document.getElementById('select').onclick = function () {
+    d3sc.select('[seat="5"]');
+};
+document.getElementById('deselect').onclick = function () {
+    d3sc.deselect('[seat="5"]');
+};
+document.getElementById('reserve').onclick = function () {
+    d3sc.lock('[seat="5"]', 'reserved');
+};
+document.getElementById('unreserve').onclick = function () {
+    d3sc.unlock('[seat="5"]');
+};
 
 
 /***/ })
-],[3]);
+],[6]);

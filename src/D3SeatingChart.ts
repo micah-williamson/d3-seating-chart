@@ -2,32 +2,16 @@ import * as d3 from 'd3';
 import { Selection, EnterElement } from "d3";
 
 import { InlineStyle } from './style.inline';
-
-interface IBoundingBox {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-}
-
-interface IDimensions {
-  width: number;
-  height: number;
-}
-
-export enum ShowBehavior {
-  All = 1,
-  DirectDecendants,
-  AllDecendants
-}
-
-export interface D3SeatingChartConfig {
-  showBehavior: ShowBehavior;
-}
+import { D3SeatingChartConfig } from './d3SeatingChartConfig.interface';
+import { ShowBehavior } from './showBehavior.enum';
+import { SelectionChangeEvent, SelectionChangeEventReason } from './selectionChangeEvent.model';
 
 const D3SeatingChartDefaultConfig : D3SeatingChartConfig = {
-  showBehavior: ShowBehavior.DirectDecendants
+  showBehavior: ShowBehavior.DirectDecendants,
+  allowManualSelection: true
 }
+
+export type ElementSelector = SVGElement | SVGElement[] | string;
 
 export class D3SeatingChart {
 
@@ -38,6 +22,10 @@ export class D3SeatingChart {
   private history: any[] = [];
 
   private zoomChangedListeners: Function[] = [];
+
+  private selectionChangeListeners: ((e: SelectionChangeEvent) => void)[] = [];
+
+  private selectedElements: SVGElement[] = [];
 
   private config: D3SeatingChartConfig;
 
@@ -73,30 +61,19 @@ export class D3SeatingChart {
   }
 
   public getBoard() {
-    let svgSelection = d3.select(this.element);
-    return svgSelection.select('[type="Board"]');
+    return this.selectElement('[board]');
   }
 
-  public getSeatingAreas() {
-    let svgSelection = d3.select(this.element);
-    return svgSelection.selectAll('[type="SeatingArea"]');
+  public selectElement(query: string) {
+    return d3.select(this.element).select(query);
   }
 
-  public getSeatingAreaExposes() {
-    let svgSelection = d3.select(this.element);
-    return svgSelection.selectAll('[type="SeatingAreaExpose"]');
-  }
-
-  public getSeats() {
-    let svgSelection = d3.select(this.element);
-    return svgSelection.selectAll('[type="SeatingAreaExpose"] > *:not([type="Static"])');
+  public selectElements(query: string) {
+    return d3.select(this.element).selectAll(query);
   }
 
   public goToBoard() {
-    let svgSelection = d3.select(this.element);
-    let boardSelection = svgSelection.select('[type="Board"]');
-
-    this.zoom(boardSelection);
+    this.zoom(this.getBoard());
   }
 
   public clearHistory() {
@@ -128,12 +105,22 @@ export class D3SeatingChart {
     };
   }
 
+  public registerSelectionChangeListener(fn: (e: SelectionChangeEvent) => void) {
+    this.selectionChangeListeners.push(fn);
+
+    return () => {
+      let idx = this.selectionChangeListeners.indexOf(fn);
+      if(idx != -1) {
+        this.selectionChangeListeners.splice(idx, 1);
+      }
+    };
+  }
+
   public zoom(selection: any, animate: boolean = true) {
     let scaleTransform: string;
     let translateTransform: string;
 
-    let svgSelection = d3.select(this.element);
-    let boardSelection = svgSelection.select('[type="Board"]');
+    let boardSelection = this.getBoard();
 
     let boundingBox = selection.node().getBBox();
 
@@ -147,7 +134,7 @@ export class D3SeatingChart {
     }
 
     // Unset focused element
-    svgSelection.selectAll('.focused').classed('focused', false);
+    this.selectElements('.focused').classed('focused', false);
 
     // Set new focused element
     selection.classed('focused', true);
@@ -214,10 +201,6 @@ export class D3SeatingChart {
     });
   }
 
-  private getInverse(selection: any) {
-
-  }
-
   private getShowList(selection: any) {
     if(this.config.showBehavior === ShowBehavior.AllDecendants) {
       return selection.selectAll('.focused *');
@@ -227,8 +210,7 @@ export class D3SeatingChart {
   }
 
   private getHideList(selection: any) {
-    let svgSelection = d3.select(this.element);
-    let boardSelection = svgSelection.select('[type="Board"]');
+    let boardSelection = this.getBoard();
     let all = boardSelection.selectAll(`*`);
     let children: any;
 
@@ -248,16 +230,130 @@ export class D3SeatingChart {
   }
 
   private bindEvents() {
-    let svgSelection = d3.select(this.element);
-    let selection = svgSelection.selectAll('[type="SeatingArea"]');
+    let self = this;
 
-    selection.on('click', (d) => {
+    this.selectElements('[zoom-control]').on('click', (d) => {
       let ele = d3.event.srcElement;
-      let expose = ele.getAttribute('expose');
+      let expose = ele.getAttribute('zoom-control');
+
       if(expose) {
-        this.zoom(svgSelection.select(`[name="${expose}"]`))
+        this.zoom(this.selectElement(`[zoom-target="${expose}"]`))
       }
     });
+
+    if(this.config.allowManualSelection) {
+      this.selectElements('[seat]').on('click', function () {
+        let selectionsChanged = false;
+
+        let ele = <SVGElement>this;
+
+        if(!ele.hasAttribute('locked')) {
+          selectionsChanged = true;
+
+          if(ele.hasAttribute('selected')) {
+            self.selectedElements.splice(self.selectedElements.findIndex(x => x === ele), 1);
+            ele.removeAttribute('selected');
+          } else {
+            self.selectedElements.push(ele);
+            ele.setAttribute('selected', '');
+          }
+        }
+
+        if(selectionsChanged) {
+          self.emitSelectionChangeEvent(SelectionChangeEventReason.SelectionChanged);
+        }
+      });
+    }
+  }
+
+  public lock(ele: ElementSelector, c: string = '') {
+    let selectionChanges = false;
+
+    ele = this.resolveElements(ele);
+
+    ele.forEach((e) => {
+      if(!e.hasAttribute('locked') || e.getAttribute('locked') != c) {
+        e.setAttribute('locked', c);
+
+        if(e.hasAttribute('selected')) {
+          e.removeAttribute('selected');
+          selectionChanges = true;
+        }
+      }
+    });
+
+    if(selectionChanges) {
+      this.emitSelectionChangeEvent(SelectionChangeEventReason.LockOverride);
+    }
+  }
+
+  public unlock(ele: ElementSelector) {
+    ele = this.resolveElements(ele);
+
+    ele.forEach((e) => {
+      if(e.hasAttribute('locked')) {
+        e.removeAttribute('locked');
+      }
+    });
+  }
+
+  public deselect(ele: ElementSelector) {
+    let selectionChanges = false;
+
+    ele = this.resolveElements(ele);
+
+    ele.forEach((e) => {
+      if(e.hasAttribute('selected')) {
+        selectionChanges = true;
+        e.removeAttribute('selected');
+      }
+    });
+
+    if(selectionChanges) {
+      this.emitSelectionChangeEvent(SelectionChangeEventReason.SelectionChanged);
+    }
+  }
+
+  public select(ele: ElementSelector) {
+    let selectionChanges = false;
+
+    ele = this.resolveElements(ele);
+
+    ele.forEach((e) => {
+      if(!e.hasAttribute('locked')) {
+        if(!e.hasAttribute('selected')) {
+          selectionChanges = true;
+          e.setAttribute('selected', '');
+        }
+      } else {
+        throw new Error('Unable to select element because its locked ' + e.outerHTML);
+      }
+    });
+
+    if(selectionChanges) {
+      this.emitSelectionChangeEvent(SelectionChangeEventReason.SelectionChanged);
+    }
+  }
+
+  private emitSelectionChangeEvent(r: SelectionChangeEventReason) {
+    // notify listeners
+    let tmpListeners = this.selectionChangeListeners.concat([]);
+    tmpListeners.forEach((listener) => {
+      listener({
+        reason: r,
+        selection: this.selectedElements.concat([])
+      });
+    });
+  }
+
+  private resolveElements(ele: ElementSelector): SVGElement[] {
+    if(typeof(ele) === 'string') {
+      ele = <SVGElement[]>this.selectElements(ele).nodes();
+    } else if(!(ele instanceof Array)) {
+      ele = [ele];
+    }
+
+    return ele;
   }
 
   static attach(element: HTMLElement, config: D3SeatingChartConfig = D3SeatingChartDefaultConfig) {

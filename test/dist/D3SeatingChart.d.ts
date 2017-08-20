@@ -1,37 +1,39 @@
 import { Selection, EnterElement } from "d3";
-export declare enum ShowBehavior {
-    All = 1,
-    DirectDecendants = 2,
-    AllDecendants = 3,
-}
-export interface D3SeatingChartConfig {
-    showBehavior: ShowBehavior;
-}
+import { D3SeatingChartConfig } from './d3SeatingChartConfig.interface';
+import { SelectionChangeEvent } from './selectionChangeEvent.model';
+export declare type ElementSelector = SVGElement | SVGElement[] | string;
 export declare class D3SeatingChart {
     private element;
     private margin;
     focusedElement: any;
     private history;
     private zoomChangedListeners;
+    private selectionChangeListeners;
+    private selectedElements;
     private config;
     private uniqueIdentifier;
     private constructor();
     private init(config);
     stripStyles(selector: string): void;
-    getBoard(): Selection<Element | Document | EnterElement | Window, {}, null, undefined>;
-    getSeatingAreas(): Selection<Element | Document | EnterElement | Window, {}, HTMLElement, {}>;
-    getSeatingAreaExposes(): Selection<Element | Document | EnterElement | Window, {}, HTMLElement, {}>;
-    getSeats(): Selection<Element | Document | EnterElement | Window, {}, HTMLElement, {}>;
+    getBoard(): Selection<Element | EnterElement | Document | Window, {}, null, undefined>;
+    selectElement(query: string): Selection<Element | EnterElement | Document | Window, {}, null, undefined>;
+    selectElements(query: string): Selection<Element | EnterElement | Document | Window, {}, HTMLElement, {}>;
     goToBoard(): void;
     clearHistory(): void;
     canGoBack(): boolean;
     goBack(): void;
     registerZoomChangeListener(fn: Function): () => void;
+    registerSelectionChangeListener(fn: (e: SelectionChangeEvent) => void): () => void;
     zoom(selection: any, animate?: boolean): void;
-    private getInverse(selection);
     private getShowList(selection);
     private getHideList(selection);
     refresh(): void;
     private bindEvents();
+    lock(ele: ElementSelector, c?: string): void;
+    unlock(ele: ElementSelector): void;
+    deselect(ele: ElementSelector): void;
+    select(ele: ElementSelector): void;
+    private emitSelectionChangeEvent(r);
+    private resolveElements(ele);
     static attach(element: HTMLElement, config?: D3SeatingChartConfig): D3SeatingChart;
 }

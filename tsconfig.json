@@ -16,6 +16,6 @@
       "es6"
     ],
     "files": [
-        "src/D3SeatingChart.ts"
+        "src/d3SeatingChart.ts"
     ]
 }
