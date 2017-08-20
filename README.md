@@ -156,7 +156,7 @@ document.getElementById('goToBoard').onclick = function() {
 }
 ```
 
-**select**
+**select(elementSelector, emitEvents = true)**
 
 Selects the given set of seats. Can be given a single element, an array of elements, or a dom query selector.
 If the selection contains a seat that is `locked` or `reserved` and error will be thrown.
@@ -179,7 +179,11 @@ d3sc.deselect([element1, element2]);
 d3sc.deselect('[seat="10"]');
 ```
 
-**lock**
+**deselectAll**
+
+Deselects all selected seats.
+
+**lock(elementSelector, class = '', emitEvents = true)**
 
 Locks the given set of seats. Can be given a single element, an array of elements, or a dom query selector.
 If the selection contains seats that are already selected, the will be force locked and a change event will be emitted with the `LockOverride` reason.
@@ -192,6 +196,10 @@ d3sc.lock(element1, "reserved");
 d3sc.lock([element1, element2], "reserved");
 d3sc.lock('[seat="10"]', "reserved");
 ```
+
+**unlockAll(class = '')**
+
+Unlocks all locked seats. Given a class, only unlocks seats of that given class. e.g. `unlockAll('reserved')`
 
 **unlock**
 

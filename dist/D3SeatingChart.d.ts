@@ -29,10 +29,12 @@ export declare class D3SeatingChart {
     private getHideList(selection);
     refresh(): void;
     private bindEvents();
-    lock(ele: ElementSelector, c?: string): void;
+    lock(ele: ElementSelector, c?: string, emitEvents?: boolean): void;
+    unlockAll(c?: string, emitEvents?: boolean): void;
     unlock(ele: ElementSelector): void;
-    deselect(ele: ElementSelector): void;
-    select(ele: ElementSelector): void;
+    deselectAll(emitEvents?: boolean): void;
+    deselect(ele: ElementSelector, emitEvents?: boolean): void;
+    select(ele: ElementSelector, emitEvents?: boolean): void;
     private emitSelectionChangeEvent(r);
     private resolveElements(ele);
     static attach(element: HTMLElement, config?: D3SeatingChartConfig): D3SeatingChart;

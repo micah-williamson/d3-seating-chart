@@ -190,7 +190,7 @@ class D3SeatingChart {
             });
         }
     }
-    lock(ele, c = '') {
+    lock(ele, c = '', emitEvents = true) {
         let selectionChanges = false;
         ele = this.resolveElements(ele);
         ele.forEach((e) => {
@@ -202,8 +202,16 @@ class D3SeatingChart {
                 }
             }
         });
-        if (selectionChanges) {
+        if (emitEvents && selectionChanges) {
             this.emitSelectionChangeEvent(selectionChangeEvent_model_1.SelectionChangeEventReason.LockOverride);
+        }
+    }
+    unlockAll(c = '', emitEvents = true) {
+        if (c) {
+            this.unlock(`[locked="${c}"]`, emitEvents);
+        }
+        else {
+            this.unlock('[locked]', emitEvents);
         }
     }
     unlock(ele) {
@@ -214,7 +222,10 @@ class D3SeatingChart {
             }
         });
     }
-    deselect(ele) {
+    deselectAll(emitEvents = true) {
+        this.deselect('[selected]', emitEvents);
+    }
+    deselect(ele, emitEvents = true) {
         let selectionChanges = false;
         ele = this.resolveElements(ele);
         ele.forEach((e) => {
@@ -223,11 +234,11 @@ class D3SeatingChart {
                 e.removeAttribute('selected');
             }
         });
-        if (selectionChanges) {
+        if (emitEvents && selectionChanges) {
             this.emitSelectionChangeEvent(selectionChangeEvent_model_1.SelectionChangeEventReason.SelectionChanged);
         }
     }
-    select(ele) {
+    select(ele, emitEvents = true) {
         let selectionChanges = false;
         ele = this.resolveElements(ele);
         ele.forEach((e) => {
@@ -241,7 +252,7 @@ class D3SeatingChart {
                 throw new Error('Unable to select element because its locked ' + e.outerHTML);
             }
         });
-        if (selectionChanges) {
+        if (emitEvents && selectionChanges) {
             this.emitSelectionChangeEvent(selectionChangeEvent_model_1.SelectionChangeEventReason.SelectionChanged);
         }
     }

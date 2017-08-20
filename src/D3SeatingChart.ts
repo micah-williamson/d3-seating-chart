@@ -266,7 +266,7 @@ export class D3SeatingChart {
     }
   }
 
-  public lock(ele: ElementSelector, c: string = '') {
+  public lock(ele: ElementSelector, c: string = '', emitEvents: boolean = true) {
     let selectionChanges = false;
 
     ele = this.resolveElements(ele);
@@ -282,9 +282,18 @@ export class D3SeatingChart {
       }
     });
 
-    if(selectionChanges) {
+    if(emitEvents && selectionChanges) {
       this.emitSelectionChangeEvent(SelectionChangeEventReason.LockOverride);
     }
+  }
+
+  public unlockAll(c: string = '', emitEvents: boolean = true) {
+    if(c) {
+      this.unlock(`[locked="${c}"]`, emitEvents);
+    } else {
+      this.unlock('[locked]', emitEvents);
+    }
+    
   }
 
   public unlock(ele: ElementSelector) {
@@ -297,7 +306,11 @@ export class D3SeatingChart {
     });
   }
 
-  public deselect(ele: ElementSelector) {
+  public deselectAll(emitEvents: boolean = true) {
+    this.deselect('[selected]', emitEvents);
+  }
+
+  public deselect(ele: ElementSelector, emitEvents: boolean = true) {
     let selectionChanges = false;
 
     ele = this.resolveElements(ele);
@@ -309,12 +322,12 @@ export class D3SeatingChart {
       }
     });
 
-    if(selectionChanges) {
+    if(emitEvents && selectionChanges) {
       this.emitSelectionChangeEvent(SelectionChangeEventReason.SelectionChanged);
     }
   }
 
-  public select(ele: ElementSelector) {
+  public select(ele: ElementSelector, emitEvents: boolean = true) {
     let selectionChanges = false;
 
     ele = this.resolveElements(ele);
@@ -330,7 +343,7 @@ export class D3SeatingChart {
       }
     });
 
-    if(selectionChanges) {
+    if(emitEvents && selectionChanges) {
       this.emitSelectionChangeEvent(SelectionChangeEventReason.SelectionChanged);
     }
   }
