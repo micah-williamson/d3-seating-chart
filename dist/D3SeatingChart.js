@@ -9,9 +9,9 @@ const D3SeatingChartDefaultConfig = {
     allowManualSelection: true
 };
 class D3SeatingChart {
-    constructor(element) {
+    constructor(element, margin = 0) {
         this.element = element;
-        this.margin = 20;
+        this.margin = margin;
         this.history = [];
         this.zoomChangedListeners = [];
         this.selectionChangeListeners = [];
@@ -99,16 +99,17 @@ class D3SeatingChart {
         this.focusedElement = selection;
         let all = boardSelection.selectAll(`*`);
         let activeLayer = selection.selectAll('.focused > *');
-        let parentWidth = this.element.clientWidth;
-        let parentHeight = this.element.clientHeight;
+        let parentWidth = this.element.clientWidth || this.element.getBoundingClientRect().width;
+        let parentHeight = this.element.clientHeight || this.element.getBoundingClientRect().height;
+        if (!parentWidth || !parentHeight) return;
         let desiredWidth = parentWidth - this.margin * 2;
         let desiredHeight = parentHeight - this.margin * 2;
         let widthRatio = desiredWidth / boundingBox.width;
         let heightRatio = desiredHeight / boundingBox.height;
         let ratio = Math.min(widthRatio, heightRatio);
         scaleTransform = `scale(${ratio})`;
-        let newX = (this.element.clientWidth / 2 - boundingBox.width * ratio / 2 - boundingBox.x * ratio);
-        let newY = (this.element.clientHeight / 2 - boundingBox.height * ratio / 2 - boundingBox.y * ratio);
+        let newX = (parentWidth / 2 - boundingBox.width * ratio / 2 - boundingBox.x * ratio);
+        let newY = (parentHeight / 2 - boundingBox.height * ratio / 2 - boundingBox.y * ratio);
         translateTransform = `translate(${newX},${newY})`;
         let currentTransform = selection.attr('transform');
         if (!currentTransform) {
@@ -427,8 +428,8 @@ class D3SeatingChart {
         }
         return ele;
     }
-    static attach(element, config = D3SeatingChartDefaultConfig) {
-        let d3s = new D3SeatingChart(element);
+    static attach(element, config = D3SeatingChartDefaultConfig, margin = 0) {
+        let d3s = new D3SeatingChart(element, margin);
         d3s.init(config);
         return d3s;
     }
