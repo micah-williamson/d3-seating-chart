@@ -9,7 +9,7 @@ const D3SeatingChartDefaultConfig = {
     allowManualSelection: true
 };
 class D3SeatingChart {
-    constructor(element, margin = 0) {
+    constructor(element, margin = 20) {
         this.element = element;
         this.margin = margin;
         this.history = [];
@@ -428,7 +428,7 @@ class D3SeatingChart {
         }
         return ele;
     }
-    static attach(element, config = D3SeatingChartDefaultConfig, margin = 0) {
+    static attach(element, config = D3SeatingChartDefaultConfig, margin = 20) {
         let d3s = new D3SeatingChart(element, margin);
         d3s.init(config);
         return d3s;
