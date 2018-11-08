@@ -30,7 +30,7 @@ export class D3SeatingChart {
 
   private uniqueIdentifier: string;
   
-  private constructor(private element: HTMLElement, , private margin: number = 20) {}
+  private constructor(private element: HTMLElement, private margin: number = 20) {}
 
   private init(config: D3SeatingChartConfig) {
     let svgSelection = d3.select(this.element);
