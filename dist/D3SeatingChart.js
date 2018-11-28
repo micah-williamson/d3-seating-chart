@@ -102,7 +102,7 @@ class D3SeatingChart {
         let parentWidth = this.element.clientWidth || this.element.getBoundingClientRect().width;
         let parentHeight = this.element.clientHeight || this.element.getBoundingClientRect().height;
         if (!parentWidth || !parentHeight) {
-            throw new Error('SVG dimensions must be postive values ' + this.element.outerHTML);
+            throw new Error(`SVG dimensions must be positive values. Received width: ${parentWidth} and height: ${parentHeight}`);
         }
         let desiredWidth = parentWidth - this.margin * 2;
         let desiredHeight = parentHeight - this.margin * 2;
