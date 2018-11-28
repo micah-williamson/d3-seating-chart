@@ -101,7 +101,9 @@ class D3SeatingChart {
         let activeLayer = selection.selectAll('.focused > *');
         let parentWidth = this.element.clientWidth || this.element.getBoundingClientRect().width;
         let parentHeight = this.element.clientHeight || this.element.getBoundingClientRect().height;
-        if (!parentWidth || !parentHeight) return;
+        if (!parentWidth || !parentHeight) {
+            throw new Error('SVG dimensions must be postive values ' + this.element.outerHTML);
+        }
         let desiredWidth = parentWidth - this.margin * 2;
         let desiredHeight = parentHeight - this.margin * 2;
         let widthRatio = desiredWidth / boundingBox.width;
