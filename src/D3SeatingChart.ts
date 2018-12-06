@@ -16,8 +16,6 @@ export type ElementSelector = SVGElement | SVGElement[] | string;
 
 export class D3SeatingChart {
 
-  private margin: number = 20;
-
   public focusedElement: any;
 
   private history: any[] = [];
@@ -31,8 +29,8 @@ export class D3SeatingChart {
   private config: D3SeatingChartConfig;
 
   private uniqueIdentifier: string;
-  
-  private constructor(private element: HTMLElement) {}
+
+  private constructor(private element: HTMLElement, private margin: number = 20) {}
 
   private init(config: D3SeatingChartConfig) {
     let svgSelection = d3.select(this.element);
@@ -54,7 +52,7 @@ export class D3SeatingChart {
 
   public stripStyles(selector: string) {
     let svgSelection = d3.select(this.element);
-    
+
     svgSelection.selectAll(selector)
       .attr('stroke', null)
       .attr('stroke-width', null)
@@ -146,9 +144,12 @@ export class D3SeatingChart {
     let activeLayer = selection.selectAll('.focused > *');
 
     // resize
-    
-    let parentWidth = this.element.clientWidth;
-    let parentHeight = this.element.clientHeight;
+
+    let parentWidth = this.element.clientWidth || this.element.getBoundingClientRect().width;
+    let parentHeight = this.element.clientHeight || this.element.getBoundingClientRect().height;
+    if (!parentWidth || !parentHeight) {
+      throw new Error(`SVG dimensions must be positive values. Received width: ${parentWidth} and height: ${parentHeight}`);
+    }
 
     let desiredWidth = parentWidth - this.margin*2;
     let desiredHeight = parentHeight - this.margin*2;
@@ -157,13 +158,13 @@ export class D3SeatingChart {
     let heightRatio = desiredHeight / boundingBox.height;
 
     let ratio = Math.min(widthRatio, heightRatio);
-    
+
     scaleTransform = `scale(${ratio})`;
-    
+
     // center
-    
-    let newX = (this.element.clientWidth/2 - boundingBox.width*ratio/2 - boundingBox.x*ratio);
-    let newY = (this.element.clientHeight/2 - boundingBox.height*ratio/2 - boundingBox.y*ratio);
+
+    let newX = (parentWidth / 2 - boundingBox.width * ratio / 2 - boundingBox.x * ratio);
+    let newY = (parentHeight / 2 - boundingBox.height * ratio / 2 - boundingBox.y * ratio);
 
     translateTransform = `translate(${newX},${newY})`;
 
@@ -188,7 +189,7 @@ export class D3SeatingChart {
         .duration(animate ? 300 : 0)
         .style('opacity', 1);
     }
-      
+
     //activeLayer.style('pointer-events', 'inherit');
 
     boardSelection.transition()
@@ -234,7 +235,7 @@ export class D3SeatingChart {
     let self = this;
 
     this.selectElements('[zoom-control]').on('click', (d) => {
-      let ele = d3.event.srcElement;
+      let ele = d3.event.srcElement || d3.event.target;
       let expose = ele.getAttribute('zoom-control');
 
       if(expose) {
@@ -377,7 +378,7 @@ export class D3SeatingChart {
     let sortedSeats = seats.sort((a, b) => {
       let aX = Math.round(parseFloat(a.getAttribute('x')));
       let aY = Math.round(parseFloat(a.getAttribute('y')));
-      
+
       let bX = Math.round(parseFloat(b.getAttribute('x')));
       let bY = Math.round(parseFloat(b.getAttribute('y')));
 
@@ -482,7 +483,7 @@ export class D3SeatingChart {
 
           lastSeat = seat;
         }
-        
+
         if(br == -1) {
           sections.push(sortedSeatsCopy.splice(0, sortedSeatsCopy.length));
         } else {
@@ -498,7 +499,7 @@ export class D3SeatingChart {
         }
       }
     }
-    
+
     if(!contiguous || scatterFallback) {
       return sortedSeats.filter(x => !x.hasAttribute('locked')).splice(0, numSeats);
     }
@@ -527,8 +528,8 @@ export class D3SeatingChart {
     return ele;
   }
 
-  static attach(element: HTMLElement, config: D3SeatingChartConfig = D3SeatingChartDefaultConfig) {
-    let d3s = new D3SeatingChart(element);
+  static attach(element: HTMLElement, config: D3SeatingChartConfig = D3SeatingChartDefaultConfig, margin: number = 20) {
+    let d3s = new D3SeatingChart(element, margin);
     d3s.init(config);
     return d3s;
   }

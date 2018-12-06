@@ -168,7 +168,7 @@ class D3SeatingChart {
     bindEvents() {
         let self = this;
         this.selectElements('[zoom-control]').on('click', (d) => {
-            let ele = d3.event.srcElement;
+            let ele = d3.event.srcElement || d3.event.target;
             let expose = ele.getAttribute('zoom-control');
             if (expose) {
                 this.zoom(this.selectElement(`[zoom-target="${expose}"]`));
