@@ -16,8 +16,6 @@ export type ElementSelector = SVGElement | SVGElement[] | string;
 
 export class D3SeatingChart {
 
-  private margin: number = 20;
-
   public focusedElement: any;
 
   private history: any[] = [];
@@ -32,7 +30,7 @@ export class D3SeatingChart {
 
   private uniqueIdentifier: string;
   
-  private constructor(private element: HTMLElement) {}
+  private constructor(private element: HTMLElement, private margin: number = 20) {}
 
   private init(config: D3SeatingChartConfig) {
     let svgSelection = d3.select(this.element);
@@ -147,8 +145,9 @@ export class D3SeatingChart {
 
     // resize
     
-    let parentWidth = this.element.clientWidth;
-    let parentHeight = this.element.clientHeight;
+    let parentWidth = this.element.clientWidth || this.element.getBoundingClientRect().width;
+    let parentHeight = this.element.clientHeight || this.element.getBoundingClientRect().height;
+    if (!parentWidth || !parentHeight) return;
 
     let desiredWidth = parentWidth - this.margin*2;
     let desiredHeight = parentHeight - this.margin*2;
@@ -162,8 +161,8 @@ export class D3SeatingChart {
     
     // center
     
-    let newX = (this.element.clientWidth/2 - boundingBox.width*ratio/2 - boundingBox.x*ratio);
-    let newY = (this.element.clientHeight/2 - boundingBox.height*ratio/2 - boundingBox.y*ratio);
+    let newX = (parentWidth / 2 - boundingBox.width * ratio / 2 - boundingBox.x * ratio);
+    let newY = (parentHeight / 2 - boundingBox.height * ratio / 2 - boundingBox.y * ratio);
 
     translateTransform = `translate(${newX},${newY})`;
 
@@ -527,8 +526,8 @@ export class D3SeatingChart {
     return ele;
   }
 
-  static attach(element: HTMLElement, config: D3SeatingChartConfig = D3SeatingChartDefaultConfig) {
-    let d3s = new D3SeatingChart(element);
+  static attach(element: HTMLElement, config: D3SeatingChartConfig = D3SeatingChartDefaultConfig, margin: number = 20) {
+    let d3s = new D3SeatingChart(element, margin);
     d3s.init(config);
     return d3s;
   }
